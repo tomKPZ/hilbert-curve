@@ -3,11 +3,10 @@
 #include <iostream>
 
 constexpr int N = 4;
-float sqrt2 = std::sqrt(2);
 
-float cache[N][N][N][N];
+int cache[N][N][N][N];
 
-float solution_error = 999999999;
+int solution_error = 999999999;
 int current[N][N];
 
 void print_solution() {
@@ -20,30 +19,30 @@ void print_solution() {
   }
 }
 
-void copy_current_to_solution(float current_error) {
+void copy_current_to_solution(int current_error) {
   solution_error = current_error;
   print_solution();
 }
 
-float error(int depth, int i1, int j1) {
-  float err = 0;
+int error(int i1, int j1) {
+  int err = 0;
   for (int i2 = 0; i2 < N; i2++) {
     for (int j2 = 0; j2 < N; j2++) {
       if (current[i2][j2] == -1)
 	continue;
 
-      float expected = cache[i1][j1][i2][j2];
-      float actual = std::abs(depth - current[i2][j2]);
+      int expected = cache[i1][j1][i2][j2];
+      int actual = std::abs(current[i1][j1] - current[i2][j2]);
 
-      // Expected: [0, sqrt(2)*(N-1)]
+      // Expected: [0, 2*(N-1)]
       // Actual:   [0, N^2 - 1]
-      err += std::abs((N*N - 1) * expected - sqrt2 * (N - 1) * actual);
+      err += std::abs((N*N - 1) * expected - 2 * (N - 1) * actual);
     }
   }
   return err;
 }
 
-template <int depth> void solve(float current_error) {
+template <int depth> void solve(int current_error) {
   if (current_error >= solution_error)
     return;
 
@@ -60,9 +59,8 @@ template <int depth> void solve(float current_error) {
         if (current[i][j] != -1)
           continue;
 
-	float new_error = error(depth, i, j);
         current[i][j] = depth;
-        solve<depth + 1>(current_error + new_error);
+        solve<depth + 1>(current_error + error(i, j));
         current[i][j] = -1;
       }
     }
@@ -76,7 +74,7 @@ void solve() {
       if (current[i][j] != -1)
 	continue;
 	      
-      float new_error = error(1, i, j);
+      int new_error = error(i, j);
       current[i][j] = 1;
       solve<2>(new_error);
       current[i][j] = -1;
@@ -94,7 +92,7 @@ void solve() {
       if (current[i][j] != -1)
 	continue;
 	      
-      float new_error = error(1, i, j);
+      int new_error = error(i, j);
       current[i][j] = 1;
       solve<2>(new_error);
       current[i][j] = -1;
@@ -118,7 +116,7 @@ void init_cache() {
 	for (int j2 = 0; j2 < N; j2++) {
 	  int di = std::abs(i2 - i1);
 	  int dj = std::abs(j2 - j1);
-	  cache[i1][j1][i2][j2] = std::sqrt(di*di + dj*dj);
+	  cache[i1][j1][i2][j2] = di + dj;
 	}
       }
     }
