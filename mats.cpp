@@ -27,9 +27,9 @@ constexpr std::array<std::array<int, N>, 1 << N> BaseShape() {
       for (std::size_t j = 0; j < RetSize / 2; j++) {
         Vector<N> &new_vec = ret[i * RetSize / 2 + j];
         Vector<N - 1> &old_vec = np[i ? RetSize / 2 - j - 1 : j];
+        new_vec[0] = i;
         ConstexprCopy(std::begin(old_vec), std::end(old_vec),
-                      std::begin(new_vec));
-        new_vec[N - 1] = i;
+                      std::begin(new_vec) + 1);
       }
     }
     return ret;
