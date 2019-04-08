@@ -29,14 +29,14 @@ int error(int i1, int j1) {
   for (int i2 = 0; i2 < N; i2++) {
     for (int j2 = 0; j2 < N; j2++) {
       if (current[i2][j2] == -1)
-	continue;
+        continue;
 
       int expected = cache[i1][j1][i2][j2];
       int actual = std::abs(current[i1][j1] - current[i2][j2]);
 
       // Expected: [0, 2*(N-1)]
       // Actual:   [0, N^2 - 1]
-      err += std::abs((N*N - 1) * expected - 2 * (N - 1) * actual);
+      err += std::abs((N * N - 1) * expected - 2 * (N - 1) * actual);
     }
   }
   return err;
@@ -72,8 +72,8 @@ void solve() {
   for (int i = 0; i < N; i++) {
     for (int j = i; j < N; j++) {
       if (current[i][j] != -1)
-	continue;
-	      
+        continue;
+
       int new_error = error(i, j);
       current[i][j] = 1;
       solve<2>(new_error);
@@ -90,8 +90,8 @@ void solve() {
   for (int i = 0; i < N; i++) {
     for (int j = i; j < N; j++) {
       if (current[i][j] != -1)
-	continue;
-	      
+        continue;
+
       int new_error = error(i, j);
       current[i][j] = 1;
       solve<2>(new_error);
@@ -113,11 +113,11 @@ void init_cache() {
   for (int i1 = 0; i1 < N; i1++) {
     for (int j1 = 0; j1 < N; j1++) {
       for (int i2 = 0; i2 < N; i2++) {
-	for (int j2 = 0; j2 < N; j2++) {
-	  int di = std::abs(i2 - i1);
-	  int dj = std::abs(j2 - j1);
-	  cache[i1][j1][i2][j2] = di + dj;
-	}
+        for (int j2 = 0; j2 < N; j2++) {
+          int di = std::abs(i2 - i1);
+          int dj = std::abs(j2 - j1);
+          cache[i1][j1][i2][j2] = di + dj;
+        }
       }
     }
   }
