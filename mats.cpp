@@ -64,19 +64,27 @@ constexpr std::array<Vector<N>, (1 << N) + 1> Transitions() {
 }
 
 int main() {
+  constexpr std::size_t N = 5;
   std::cout << "BaseShape" << std::endl;
-  constexpr auto vecs = BaseShape<3>();
+  constexpr auto vecs = BaseShape<N>();
   for (const auto &vec : vecs) {
     for (int i : vec) {
       std::cout << i << '\t';
     }
     std::cout << std::endl;
   }
-  std::cout << "Transitions" << std::endl;
-  constexpr auto transitions = Transitions<3>();
+  std::cout << "Transitions (absolute)" << std::endl;
+  constexpr auto transitions = Transitions<N>();
   for (const auto &vec : transitions) {
     for (int i : vec) {
       std::cout << i << '\t';
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "Transitions (relative)" << std::endl;
+  for (std::size_t i = 0; i < std::size(transitions) - 1; i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << transitions[i + 1][j] - transitions[i][j] << '\t';
     }
     std::cout << std::endl;
   }
