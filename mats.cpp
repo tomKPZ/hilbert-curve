@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <iostream>
 #include <numeric>
+#include <set>
 #include <vector>
 
 template <std::size_t N> using Vector = std::array<int, N>;
@@ -15,7 +16,7 @@ constexpr SquareMatrix<N> operator*(const SquareMatrix<N>& l, const SquareMatrix
     for (std::size_t j = 0; j < N; j++) {
       int dot = 0;
       for (std::size_t k = 0; k < N; k++) {
-	dot += l.rows[i][k]*r.rows[k][j];
+	dot += l[i][k]*r[k][j];
       }
       ret[i][j] = dot;
     }
@@ -180,6 +181,40 @@ void TestShapeAndTransitions() {
   }
 }
 
+template <std::size_t B, std::size_t E>
+constexpr std::size_t Pow() {
+  if constexpr (E == 0) {
+    return 1;
+  } else {
+    return B * Pow<B, E - 1>();
+  }
+}
+
+template <std::size_t N>
+constexpr SquareMatrix<N> Pow(const SquareMatrix<N>& matrix, std::size_t exponent) {
+  SquareMatrix<N> ret = Identity<N>();
+  for (std::size_t i = 0; i < exponent; i++) {
+    ret = ret * matrix;
+  }
+  return ret;
+}
+
+template <std::size_t N, std::size_t M>
+constexpr std::array<std::array<std::size_t, N>, Pow<M, N>()> Multipliers() {
+  std::array<std::array<std::size_t, N>, Pow<M, N>()> ret{};
+  if constexpr (N != 0 && M != 0) {
+    auto solutions = Multipliers<N - 1, M>();
+    std::size_t filled = 0;
+    for (std::size_t i = 0; i < M; i++) {
+      for (const auto& solution : solutions) {
+	Copy(std::begin(solution), std::end(solution), std::begin(ret[filled]));
+	ret[filled++][N - 1] = i;
+      }
+    }
+  }
+  return ret;
+}
+
 void TestChoose() {
   constexpr auto solutions = Choose<4, 2>();
   for (const auto &solution : solutions) {
@@ -190,19 +225,54 @@ void TestChoose() {
   }
 }
 
+template <std::size_t N>
+void PrintMatrix(const SquareMatrix<N>& matrix) {
+  for (const auto& row : matrix) {
+    for (int x : row) {
+      std::cout << x << '\t';
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+}
+
 void TestBaseRotationMatrices() {
   constexpr auto matrices = BaseRotationMatrices<4>();
   for (const auto& matrix : matrices) {
-    for (const auto& row : matrix) {
-      for (int x : row) {
-	std::cout << x << '\t';
-      }
-      std::cout << std::endl;
+    PrintMatrix(matrix);
+    std::cout << std::endl;
+  }
+}
+
+void TestAllRotationMatrices() {
+  constexpr std::size_t N = 3;
+  auto base_matrices = BaseRotationMatrices<N>();
+  std::set<SquareMatrix<N>> all_matrices;
+  for (const auto& multipliers : Multipliers<std::size(base_matrices), 4>()) {
+    SquareMatrix<N> matrix = Identity<N>();
+    for (std::size_t i = 0; i < std::size(multipliers); i++) {
+      matrix = matrix * Pow(base_matrices[i], multipliers[i]);
+    }
+    all_matrices.insert(matrix);
+    // PrintMatrix(matrix);
+  }
+  // std::cout << all_matrices.size() << std::endl;
+  for (const auto& matrix : all_matrices) {
+    PrintMatrix(matrix);
+  }
+}
+
+void TestMultipliers() {
+  constexpr auto multipliers = Multipliers<4, 3>();
+  for (const auto& mults : multipliers) {
+    for (std::size_t x : mults) {
+      std::cout << x << '\t';
     }
     std::cout << std::endl;
   }
 }
 
 int main() {
+  TestAllRotationMatrices();
   return 0;
 }
