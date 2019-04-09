@@ -145,8 +145,10 @@ constexpr std::array<SquareMatrix<N>, BinomialCoefficient<N, 2>()> BaseRotationM
     matrix = Identity<N>();
     matrix[combination[0]][combination[0]] = 0;
     matrix[combination[1]][combination[1]] = 0;
-    matrix[combination[0]][combination[1]] = 1;
-    matrix[combination[1]][combination[0]] = -1;
+    // int d = ((N % 2) ^ (combination[0] % 2) ^ (combination[1] % 2)) ? 1 : -1;
+    int d = 1;
+    matrix[combination[0]][combination[1]] = d;
+    matrix[combination[1]][combination[0]] = -d;
   }
   return ret;
 }
