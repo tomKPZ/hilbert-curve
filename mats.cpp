@@ -314,7 +314,7 @@ constexpr bool Checksum(const CompressedRotationMatrix<N> &matrix) {
 }
 
 void TestAllRotationMatrices() {
-  constexpr std::size_t N = 4;
+  constexpr std::size_t N = 3;
   constexpr auto base_matrices = BaseRotationMatrices<N>();
   auto all_multipliers = Multipliers<std::size(base_matrices), 4>();
   std::set<CompressedRotationMatrix<N>> all_matrices;
@@ -326,7 +326,7 @@ void TestAllRotationMatrices() {
     all_matrices.insert(CompressRotationMatrix(matrix));
   }
   for (const auto &matrix : all_matrices) {
-    std::cout << Checksum(matrix) << std::endl;
+    PrintCompressedRotationMatrix(matrix);
   }
 }
 
@@ -392,12 +392,21 @@ constexpr std::size_t NumRotationMatrices(std::size_t N) {
 template <std::size_t N>
 constexpr std::array<CompressedRotationMatrix<N>, NumRotationMatrices(N)>
 RotationMatrices() {
+  std::size_t i = 0;
   std::array<CompressedRotationMatrix<N>, NumRotationMatrices(N)> ret{};
 
   std::array<std::size_t, N> order{};
+  std::array<bool, N - 1> signs{};
   std::iota(std::begin(order), std::end(order), 0);
   do {
-
+    do {
+      ret[i].order = order;
+      Copy(std::begin(signs), std::end(signs), std::begin(ret[i].signs));
+      if (Checksum(ret[i])) {
+	ret[i].signs[N - 1] = true;
+      }
+      i++;
+    } while(Next(std::begin(signs), std::end(signs)));
   } while (NextPermutation(std::begin(order), std::end(order)));
 
   return ret;
@@ -414,7 +423,7 @@ void TestNext() {
 }
 
 void TestRotationMatrices() {
-  auto matrices = RotationMatrices<3>();
+  auto matrices = RotationMatrices<7>();
   for (const auto &matrix : matrices) {
     PrintCompressedRotationMatrix(matrix);
   }
