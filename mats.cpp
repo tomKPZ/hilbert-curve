@@ -10,13 +10,14 @@ template <std::size_t N> using Vector = std::array<int, N>;
 template <std::size_t N> using SquareMatrix = std::array<std::array<int, N>, N>;
 
 template <std::size_t N>
-constexpr SquareMatrix<N> operator*(const SquareMatrix<N>& l, const SquareMatrix<N>& r) {
+constexpr SquareMatrix<N> operator*(const SquareMatrix<N> &l,
+                                    const SquareMatrix<N> &r) {
   SquareMatrix<N> ret;
   for (std::size_t i = 0; i < N; i++) {
     for (std::size_t j = 0; j < N; j++) {
       int dot = 0;
       for (std::size_t k = 0; k < N; k++) {
-	dot += l[i][k]*r[k][j];
+        dot += l[i][k] * r[k][j];
       }
       ret[i][j] = dot;
     }
@@ -77,8 +78,7 @@ constexpr std::array<Vector<N>, (1 << N) + 1> Transitions() {
   }
 }
 
-template <std::size_t N>
-constexpr SquareMatrix<N> Identity() {
+template <std::size_t N> constexpr SquareMatrix<N> Identity() {
   SquareMatrix<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i][i] = 1;
@@ -136,13 +136,14 @@ Choose() {
 }
 
 template <std::size_t N>
-constexpr std::array<SquareMatrix<N>, BinomialCoefficient<N, 2>()> BaseRotationMatrices() {
+constexpr std::array<SquareMatrix<N>, BinomialCoefficient<N, 2>()>
+BaseRotationMatrices() {
   constexpr std::size_t RetSize = BinomialCoefficient<N, 2>();
   std::array<SquareMatrix<N>, RetSize> ret{};
   constexpr auto combinations = Choose<N, 2>();
   for (std::size_t i = 0; i < RetSize; i++) {
-    const auto& combination = combinations[i];
-    auto& matrix = ret[i];
+    const auto &combination = combinations[i];
+    auto &matrix = ret[i];
     matrix = Identity<N>();
     matrix[combination[0]][combination[0]] = 0;
     matrix[combination[1]][combination[1]] = 0;
@@ -181,8 +182,7 @@ void TestShapeAndTransitions() {
   }
 }
 
-template <std::size_t B, std::size_t E>
-constexpr std::size_t Pow() {
+template <std::size_t B, std::size_t E> constexpr std::size_t Pow() {
   if constexpr (E == 0) {
     return 1;
   } else {
@@ -191,7 +191,8 @@ constexpr std::size_t Pow() {
 }
 
 template <std::size_t N>
-constexpr SquareMatrix<N> Pow(const SquareMatrix<N>& matrix, std::size_t exponent) {
+constexpr SquareMatrix<N> Pow(const SquareMatrix<N> &matrix,
+                              std::size_t exponent) {
   SquareMatrix<N> ret = Identity<N>();
   for (std::size_t i = 0; i < exponent; i++) {
     ret = ret * matrix;
@@ -206,9 +207,9 @@ constexpr std::array<std::array<std::size_t, N>, Pow<M, N>()> Multipliers() {
     auto solutions = Multipliers<N - 1, M>();
     std::size_t filled = 0;
     for (std::size_t i = 0; i < M; i++) {
-      for (const auto& solution : solutions) {
-	Copy(std::begin(solution), std::end(solution), std::begin(ret[filled]));
-	ret[filled++][N - 1] = i;
+      for (const auto &solution : solutions) {
+        Copy(std::begin(solution), std::end(solution), std::begin(ret[filled]));
+        ret[filled++][N - 1] = i;
       }
     }
   }
@@ -225,46 +226,108 @@ void TestChoose() {
   }
 }
 
-template <std::size_t N>
-void PrintMatrix(const SquareMatrix<N>& matrix) {
-  for (const auto& row : matrix) {
+template <std::size_t N> void PrintMatrix(const SquareMatrix<N> &matrix) {
+  for (const auto &row : matrix) {
     for (int x : row) {
       std::cout << x << '\t';
     }
     std::cout << std::endl;
   }
-  std::cout << std::endl;
 }
 
 void TestBaseRotationMatrices() {
   constexpr auto matrices = BaseRotationMatrices<4>();
-  for (const auto& matrix : matrices) {
+  for (const auto &matrix : matrices) {
     PrintMatrix(matrix);
     std::cout << std::endl;
   }
 }
 
+template <std::size_t N> struct CompressedRotationMatrix {
+  std::array<std::size_t, N> order;
+  std::array<bool, N> signs;
+
+  bool operator<(const CompressedRotationMatrix &other) const {
+    if (order < other.order) {
+      return true;
+    }
+    if (order > other.order) {
+      return false;
+    }
+    return signs < other.signs;
+  }
+};
+
+template <std::size_t N>
+void PrintCompressedRotationMatrix(const CompressedRotationMatrix<N> &matrix) {
+  for (std::size_t i : matrix.order) {
+    std::cout << i << '\t';
+  }
+  std::cout << std::endl;
+  for (bool sign : matrix.signs) {
+    std::cout << (sign ? '+' : '-') << '\t';
+  }
+  std::cout << std::endl;
+}
+
+template <std::size_t N>
+constexpr CompressedRotationMatrix<N>
+CompressRotationMatrix(const SquareMatrix<N> &matrix) {
+  CompressedRotationMatrix<N> ret;
+
+  for (std::size_t i = 0; i < N; i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      if (matrix[i][j] != 0) {
+        ret.order[j] = i;
+        ret.signs[j] = matrix[i][j] > 0;
+      }
+    }
+  }
+
+  return ret;
+}
+
+// O(N^2).  Could make this O(N) if this is generalized to
+// non-adjacent swaps.
+template <std::size_t N>
+constexpr std::size_t AdjacentSwaps(const std::array<std::size_t, N> &arr) {
+  std::array<std::size_t, N> arr_{arr};
+  std::size_t swaps = 0;
+  for (std::size_t i = 0; i < N - 1; i++) {
+    for (std::size_t j = 0; j < N - i - 1; j++) {
+      if (arr_[j] > arr_[j + 1]) {
+        std::swap(arr_[j], arr_[j + 1]);
+        swaps++;
+      }
+    }
+  }
+  return swaps;
+}
+
 void TestAllRotationMatrices() {
-  constexpr std::size_t N = 3;
-  auto base_matrices = BaseRotationMatrices<N>();
-  std::set<SquareMatrix<N>> all_matrices;
-  for (const auto& multipliers : Multipliers<std::size(base_matrices), 4>()) {
+  constexpr std::size_t N = 4;
+  constexpr auto base_matrices = BaseRotationMatrices<N>();
+  auto all_multipliers = Multipliers<std::size(base_matrices), 4>();
+  std::set<CompressedRotationMatrix<N>> all_matrices;
+  for (const auto &multipliers : all_multipliers) {
     SquareMatrix<N> matrix = Identity<N>();
     for (std::size_t i = 0; i < std::size(multipliers); i++) {
       matrix = matrix * Pow(base_matrices[i], multipliers[i]);
     }
-    all_matrices.insert(matrix);
-    // PrintMatrix(matrix);
+    all_matrices.insert(CompressRotationMatrix(matrix));
   }
-  // std::cout << all_matrices.size() << std::endl;
-  for (const auto& matrix : all_matrices) {
-    PrintMatrix(matrix);
+  for (const auto &matrix : all_matrices) {
+    bool checksum = (N % 2) ^ (AdjacentSwaps(matrix.order) % 2);
+    for (std::size_t i = 0; i < N; i++) {
+      checksum ^= matrix.signs[i];
+    }
+    std::cout << checksum << std::endl;
   }
 }
 
 void TestMultipliers() {
   constexpr auto multipliers = Multipliers<4, 3>();
-  for (const auto& mults : multipliers) {
+  for (const auto &mults : multipliers) {
     for (std::size_t x : mults) {
       std::cout << x << '\t';
     }
