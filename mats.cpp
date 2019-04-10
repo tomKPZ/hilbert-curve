@@ -304,6 +304,15 @@ constexpr std::size_t AdjacentSwaps(const std::array<std::size_t, N> &arr) {
   return swaps;
 }
 
+template <std::size_t N>
+constexpr bool Checksum(const CompressedRotationMatrix<N> &matrix) {
+  bool checksum = (N % 2) ^ (AdjacentSwaps(matrix.order) % 2);
+  for (std::size_t i = 0; i < N; i++) {
+    checksum ^= matrix.signs[i];
+  }
+  return checksum;
+}
+
 void TestAllRotationMatrices() {
   constexpr std::size_t N = 4;
   constexpr auto base_matrices = BaseRotationMatrices<N>();
@@ -317,11 +326,7 @@ void TestAllRotationMatrices() {
     all_matrices.insert(CompressRotationMatrix(matrix));
   }
   for (const auto &matrix : all_matrices) {
-    bool checksum = (N % 2) ^ (AdjacentSwaps(matrix.order) % 2);
-    for (std::size_t i = 0; i < N; i++) {
-      checksum ^= matrix.signs[i];
-    }
-    std::cout << checksum << std::endl;
+    std::cout << Checksum(matrix) << std::endl;
   }
 }
 
@@ -335,7 +340,87 @@ void TestMultipliers() {
   }
 }
 
+template <typename BidirIt> constexpr bool Next(BidirIt first, BidirIt last) {
+  if (first == last) {
+    return false;
+  }
+  last--;
+  *last = !*last;
+  if (*last) {
+    return true;
+  }
+  *last = false;
+  return Next(first, last);
+}
+
+// Constexpr version copied from STL.
+template <class BidirIt>
+constexpr bool NextPermutation(BidirIt first, BidirIt last) {
+  if (first == last) {
+    return false;
+  }
+  BidirIt i = last;
+  if (first == --i) {
+    return false;
+  }
+  while (true) {
+    BidirIt i1, i2;
+    i1 = i;
+    if (*--i < *i1) {
+      i2 = last;
+      while (!(*i < *--i2)) {
+      }
+      std::iter_swap(i, i2);
+      std::reverse(i1, last);
+      return true;
+    }
+    if (i == first) {
+      std::reverse(first, last);
+      return false;
+    }
+  }
+}
+
+constexpr std::size_t Factorial(std::size_t x) {
+  return x == 0 ? 1 : x * Factorial(x - 1);
+}
+
+constexpr std::size_t NumRotationMatrices(std::size_t N) {
+  return Factorial(N) * (1 << (N - 1));
+}
+
+template <std::size_t N>
+constexpr std::array<CompressedRotationMatrix<N>, NumRotationMatrices(N)>
+RotationMatrices() {
+  std::array<CompressedRotationMatrix<N>, NumRotationMatrices(N)> ret{};
+
+  std::array<std::size_t, N> order{};
+  std::iota(std::begin(order), std::end(order), 0);
+  do {
+
+  } while (NextPermutation(std::begin(order), std::end(order)));
+
+  return ret;
+}
+
+void TestNext() {
+  std::array<bool, 3> arr{};
+  do {
+    for (int j : arr) {
+      std::cout << j << '\t';
+    }
+    std::cout << std::endl;
+  } while (Next(std::begin(arr), std::end(arr)));
+}
+
+void TestRotationMatrices() {
+  auto matrices = RotationMatrices<3>();
+  for (const auto &matrix : matrices) {
+    PrintCompressedRotationMatrix(matrix);
+  }
+}
+
 int main() {
-  TestAllRotationMatrices();
+  TestRotationMatrices();
   return 0;
 }
