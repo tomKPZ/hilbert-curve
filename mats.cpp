@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <numeric>
@@ -256,6 +257,10 @@ template <std::size_t N> struct CompressedRotationMatrix {
     }
     return signs < other.signs;
   }
+
+  bool operator==(const CompressedRotationMatrix &other) const {
+    return order == other.order && signs == other.signs;
+  }
 };
 
 template <std::size_t N>
@@ -287,6 +292,12 @@ CompressRotationMatrix(const SquareMatrix<N> &matrix) {
   return ret;
 }
 
+template <typename T> constexpr void Swap(T &a, T &b) {
+  T temp = a;
+  a = b;
+  b = temp;
+}
+
 // O(N^2).  Could make this O(N) if this is generalized to
 // non-adjacent swaps.
 template <std::size_t N>
@@ -296,7 +307,7 @@ constexpr std::size_t AdjacentSwaps(const std::array<std::size_t, N> &arr) {
   for (std::size_t i = 0; i < N - 1; i++) {
     for (std::size_t j = 0; j < N - i - 1; j++) {
       if (arr_[j] > arr_[j + 1]) {
-        std::swap(arr_[j], arr_[j + 1]);
+        Swap(arr_[j], arr_[j + 1]);
         swaps++;
       }
     }
@@ -313,33 +324,6 @@ constexpr bool Checksum(const CompressedRotationMatrix<N> &matrix) {
   return checksum;
 }
 
-void TestAllRotationMatrices() {
-  constexpr std::size_t N = 3;
-  constexpr auto base_matrices = BaseRotationMatrices<N>();
-  auto all_multipliers = Multipliers<std::size(base_matrices), 4>();
-  std::set<CompressedRotationMatrix<N>> all_matrices;
-  for (const auto &multipliers : all_multipliers) {
-    SquareMatrix<N> matrix = Identity<N>();
-    for (std::size_t i = 0; i < std::size(multipliers); i++) {
-      matrix = matrix * Pow(base_matrices[i], multipliers[i]);
-    }
-    all_matrices.insert(CompressRotationMatrix(matrix));
-  }
-  for (const auto &matrix : all_matrices) {
-    PrintCompressedRotationMatrix(matrix);
-  }
-}
-
-void TestMultipliers() {
-  constexpr auto multipliers = Multipliers<4, 3>();
-  for (const auto &mults : multipliers) {
-    for (std::size_t x : mults) {
-      std::cout << x << '\t';
-    }
-    std::cout << std::endl;
-  }
-}
-
 template <typename BidirIt> constexpr bool Next(BidirIt first, BidirIt last) {
   if (first == last) {
     return false;
@@ -353,6 +337,58 @@ template <typename BidirIt> constexpr bool Next(BidirIt first, BidirIt last) {
   return Next(first, last);
 }
 
+template <typename T, typename BidirIt>
+constexpr bool Next(BidirIt first, BidirIt last, T max) {
+  if (first == last) {
+    return false;
+  }
+  last--;
+  (*last)++;
+  if (*last < max) {
+    return true;
+  }
+  *last = 0;
+  return Next(first, last, max);
+}
+
+// Slow reference implementation.
+template <std::size_t N>
+std::set<CompressedRotationMatrix<N>> SlowCompressedRotationMatrices() {
+  constexpr auto base_matrices = BaseRotationMatrices<N>();
+  std::set<CompressedRotationMatrix<N>> all_matrices;
+  std::array<std::size_t, std::size(base_matrices)> multipliers{};
+  do {
+    SquareMatrix<N> matrix = Identity<N>();
+    for (std::size_t i = 0; i < std::size(multipliers); i++) {
+      matrix = matrix * Pow(base_matrices[i], multipliers[i]);
+    }
+    all_matrices.insert(CompressRotationMatrix(matrix));
+  } while (Next(std::begin(multipliers), std::end(multipliers),
+                static_cast<std::size_t>(4)));
+  return all_matrices;
+}
+
+void TestMultipliers() {
+  constexpr auto multipliers = Multipliers<4, 3>();
+  for (const auto &mults : multipliers) {
+    for (std::size_t x : mults) {
+      std::cout << x << '\t';
+    }
+    std::cout << std::endl;
+  }
+}
+
+template <class ForwardIt1, class ForwardIt2>
+constexpr void IterSwap(ForwardIt1 a, ForwardIt2 b) {
+  Swap(*a, *b);
+}
+
+template <class BidirIt> constexpr void Reverse(BidirIt first, BidirIt last) {
+  while ((first != last) && (first != --last)) {
+    IterSwap(first++, last);
+  }
+}
+
 // Constexpr version copied from STL.
 template <class BidirIt>
 constexpr bool NextPermutation(BidirIt first, BidirIt last) {
@@ -364,18 +400,17 @@ constexpr bool NextPermutation(BidirIt first, BidirIt last) {
     return false;
   }
   while (true) {
-    BidirIt i1, i2;
-    i1 = i;
+    BidirIt i1 = i;
     if (*--i < *i1) {
-      i2 = last;
+      BidirIt i2 = last;
       while (!(*i < *--i2)) {
       }
-      std::iter_swap(i, i2);
-      std::reverse(i1, last);
+      IterSwap(i, i2);
+      Reverse(i1, last);
       return true;
     }
     if (i == first) {
-      std::reverse(first, last);
+      Reverse(first, last);
       return false;
     }
   }
@@ -391,22 +426,22 @@ constexpr std::size_t NumRotationMatrices(std::size_t N) {
 
 template <std::size_t N>
 constexpr std::array<CompressedRotationMatrix<N>, NumRotationMatrices(N)>
-RotationMatrices() {
+CompressedRotationMatrices() {
   std::size_t i = 0;
   std::array<CompressedRotationMatrix<N>, NumRotationMatrices(N)> ret{};
 
   std::array<std::size_t, N> order{};
   std::array<bool, N - 1> signs{};
-  std::iota(std::begin(order), std::end(order), 0);
+  Iota(std::begin(order), std::end(order), 0);
   do {
     do {
       ret[i].order = order;
       Copy(std::begin(signs), std::end(signs), std::begin(ret[i].signs));
       if (Checksum(ret[i])) {
-	ret[i].signs[N - 1] = true;
+        ret[i].signs[N - 1] = true;
       }
       i++;
-    } while(Next(std::begin(signs), std::end(signs)));
+    } while (Next(std::begin(signs), std::end(signs)));
   } while (NextPermutation(std::begin(order), std::end(order)));
 
   return ret;
@@ -422,14 +457,24 @@ void TestNext() {
   } while (Next(std::begin(arr), std::end(arr)));
 }
 
-void TestRotationMatrices() {
-  auto matrices = RotationMatrices<7>();
+void TestCompressedRotationMatrices() {
+  auto matrices = CompressedRotationMatrices<4>();
   for (const auto &matrix : matrices) {
     PrintCompressedRotationMatrix(matrix);
   }
 }
 
-int main() {
-  TestRotationMatrices();
-  return 0;
+void TestSlowCompressedRotationMatrices() {
+  for (const auto &matrix : SlowCompressedRotationMatrices<4>()) {
+    PrintCompressedRotationMatrix(matrix);
+  }
 }
+
+void VerifyCompressedRotationMatrices() {
+  constexpr std::size_t N = 5;
+  const auto fast = CompressedRotationMatrices<N>();
+  const auto slow = SlowCompressedRotationMatrices<N>();
+  assert(std::equal(std::begin(fast), std::end(fast), std::begin(slow)));
+}
+
+int main() { return 0; }
