@@ -126,7 +126,7 @@ template <std::size_t N> constexpr std::array<Vector<N>, (1 << N)> BaseShape() {
       for (std::size_t j = 0; j < TwoPowN / 2; j++) {
         Vector<N> &new_vec = ret[i * TwoPowN / 2 + j];
         Vector<N - 1> &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
-	new_vec[0] = i;
+        new_vec[0] = i;
         Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec) + 1);
       }
     }
@@ -448,10 +448,12 @@ constexpr std::size_t NumRotationAndMirrorMatrices(std::size_t N) {
 }
 
 template <std::size_t N>
-constexpr std::array<CompressedRotationMatrix<N>, NumRotationAndMirrorMatrices(N)>
+constexpr std::array<CompressedRotationMatrix<N>,
+                     NumRotationAndMirrorMatrices(N)>
 RotationAndMirrorMatrices() {
   std::size_t i = 0;
-  std::array<CompressedRotationMatrix<N>, NumRotationAndMirrorMatrices(N)> ret{};
+  std::array<CompressedRotationMatrix<N>, NumRotationAndMirrorMatrices(N)>
+      ret{};
 
   std::array<std::size_t, N> order{};
   std::array<bool, N> signs{};
@@ -619,9 +621,9 @@ void BruteForceRotations() {
     Vector<N> v2p = (transitions[i + 1] - vecs[i]) * 2 - Ones<N>();
     PrintNumberInBinary<N>(i);
     PrintVector(vecs[i]);
-    for (const auto& rotation : rotations) {
-      if (rotation*v1p == v1 && rotation*v2p == v2) {
-	PrintCompressedRotationMatrix(rotation);
+    for (const auto &rotation : rotations) {
+      if (rotation * v1p == v1 && rotation * v2p == v2) {
+        PrintCompressedRotationMatrix(rotation);
       }
     }
     std::cout << std::endl;
