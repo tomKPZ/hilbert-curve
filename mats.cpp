@@ -128,8 +128,8 @@ template <std::size_t N> constexpr std::array<Vector<N>, (1 << N)> BaseShape() {
       for (std::size_t j = 0; j < TwoPowN / 2; j++) {
         Vector<N> &new_vec = ret[i * TwoPowN / 2 + j];
         Vector<N - 1> &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
-        new_vec[0] = i;
-        Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec) + 1);
+        Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
+        new_vec[N - 1] = i;
       }
     }
     return ret;
@@ -147,16 +147,16 @@ constexpr std::array<Vector<N>, (1 << N) + 1> Transitions() {
     for (std::size_t j = 0; j < TwoPowN / 2; j++) {
       Vector<N> &new_vec = ret[j];
       Vector<N - 1> &old_vec = np[j];
-      new_vec[0] = 0;
-      Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec) + 1);
+      Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
+      new_vec[N - 1] = 0;
     }
     ret[TwoPowN / 2] = ret[TwoPowN / 2 - 1];
-    ret[TwoPowN / 2][0] = 1;
+    ret[TwoPowN / 2][N - 1] = 1;
     for (std::size_t j = 0; j < TwoPowN / 2; j++) {
       Vector<N> &new_vec = ret[TwoPowN / 2 + 1 + j];
       Vector<N - 1> &old_vec = np[TwoPowN / 2 - 1 - j];
-      new_vec[0] = 2;
-      Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec) + 1);
+      Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
+      new_vec[N - 1] = 2;
     }
     return ret;
   }
@@ -617,7 +617,7 @@ void BruteForceRotations() {
   constexpr auto rotations = CompressedRotationMatrices<N>();
   Vector<N> v1 = -Ones<N>();
   Vector<N> v2 = -Ones<N>();
-  v2[0] = 1;
+  v2[N - 1] = 1;
   for (std::size_t i = 0; i < std::size(vecs); i++) {
     Vector<N> v1p = (transitions[i] - vecs[i]) * 2 - Ones<N>();
     Vector<N> v2p = (transitions[i + 1] - vecs[i]) * 2 - Ones<N>();
