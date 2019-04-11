@@ -443,6 +443,37 @@ CompressedRotationMatrices() {
   return ret;
 }
 
+constexpr std::size_t NumRotationAndMirrorMatrices(std::size_t N) {
+  return Factorial(N) * (1 << N);
+}
+
+template <std::size_t N>
+constexpr std::array<CompressedRotationMatrix<N>, NumRotationAndMirrorMatrices(N)>
+RotationAndMirrorMatrices() {
+  std::size_t i = 0;
+  std::array<CompressedRotationMatrix<N>, NumRotationAndMirrorMatrices(N)> ret{};
+
+  std::array<std::size_t, N> order{};
+  std::array<bool, N> signs{};
+  Iota(std::begin(order), std::end(order), 0);
+  do {
+    do {
+      ret[i].order = order;
+      ret[i].signs = signs;
+      i++;
+    } while (Next(std::begin(signs), std::end(signs)));
+  } while (NextPermutation(std::begin(order), std::end(order)));
+
+  return ret;
+}
+
+template <std::size_t N> void PrintNumberInBinary(std::size_t x) {
+  for (std::size_t i = (1 << (N - 1)); i != 0; i >>= 1) {
+    std::cout << ((i & x) ? 1 : 0) << '\t';
+  }
+  std::cout << std::endl;
+}
+
 template <std::size_t N> void PrintVector(const Vector<N> &vector) {
   for (int x : vector) {
     std::cout << x << '\t';
@@ -578,6 +609,7 @@ void BruteForceRotations() {
   constexpr std::size_t N = 3;
   constexpr auto vecs = BaseShape<N>();
   constexpr auto transitions = Transitions<N>();
+  // constexpr auto rotations = RotationAndMirrorMatrices<N>();
   constexpr auto rotations = CompressedRotationMatrices<N>();
   Vector<N> v1 = -Ones<N>();
   Vector<N> v2 = -Ones<N>();
@@ -585,6 +617,14 @@ void BruteForceRotations() {
   for (std::size_t i = 0; i < std::size(vecs); i++) {
     Vector<N> v1p = (transitions[i] - vecs[i]) * 2 - Ones<N>();
     Vector<N> v2p = (transitions[i + 1] - vecs[i]) * 2 - Ones<N>();
+    PrintNumberInBinary<N>(i);
+    PrintVector(vecs[i]);
+    for (const auto& rotation : rotations) {
+      if (rotation*v1p == v1 && rotation*v2p == v2) {
+	PrintCompressedRotationMatrix(rotation);
+      }
+    }
+    std::cout << std::endl;
   }
 }
 
