@@ -2,9 +2,11 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <set>
+#include <sstream>
 #include <vector>
 
 template <std::size_t N> using Vector = std::array<int, N>;
@@ -630,7 +632,43 @@ void BruteForceRotations() {
   }
 }
 
+std::vector<std::vector<int>> Parse(const std::string& filename) {
+  std::vector<std::vector<int>> ret;
+  std::ifstream file(filename);
+  std::string line;
+  while(std::getline(file, line)) {
+    std::vector<int> v;
+    std::istringstream ss(line);
+    std::istream s(ss.rdbuf());
+    std::string num;
+    while (std::getline(s, num, ',')) {
+      v.push_back(std::atoi(num.c_str()));
+    }
+    ret.push_back(v);
+  }
+  return ret;
+}
+
+template <std::size_t N>
+void VerifyBaseShapes() {
+  if constexpr (N == 0) {
+    return;
+  } else {
+    VerifyBaseShapes<N - 1>();
+    auto vs = Parse("hb/hb_1_" + std::to_string(N) + ".txt");
+    auto base_shapes = BaseShape<N>();
+    assert(vs.size() == base_shapes.size());
+    for (std::size_t i = 0; i < vs.size(); i++) {
+      assert(vs[i].size() == std::size(base_shapes[i]));
+      for (std::size_t j = 0; j < vs.size(); j++) {
+	assert(vs[i][j] == base_shapes[i][j]);
+      }
+    }
+  }
+}
+
 int main() {
-  BruteForceRotations();
+  VerifyBaseShapes<10>();
+  // BruteForceRotations();
   return 0;
 }
