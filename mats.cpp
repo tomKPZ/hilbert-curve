@@ -661,14 +661,17 @@ void VerifyBaseShapes() {
     for (std::size_t i = 0; i < vs.size(); i++) {
       assert(vs[i].size() == std::size(base_shapes[i]));
       for (std::size_t j = 0; j < vs.size(); j++) {
+	std::cout << "(" << vs[i][j] << ',' << base_shapes[i][j] << ")\t" << std::flush;
 	assert(vs[i][j] == base_shapes[i][j]);
       }
+      std::cout << std::endl;
     }
   }
 }
 
 int main() {
-  VerifyBaseShapes<10>();
+  // VerifyBaseShapes<10>();
+  TestShapeAndTransitions();
   // BruteForceRotations();
   return 0;
 }
