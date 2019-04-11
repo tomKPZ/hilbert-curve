@@ -632,11 +632,11 @@ void BruteForceRotations() {
   }
 }
 
-std::vector<std::vector<int>> Parse(const std::string& filename) {
+std::vector<std::vector<int>> Parse(const std::string &filename) {
   std::vector<std::vector<int>> ret;
   std::ifstream file(filename);
   std::string line;
-  while(std::getline(file, line)) {
+  while (std::getline(file, line)) {
     std::vector<int> v;
     std::istringstream ss(line);
     std::istream s(ss.rdbuf());
@@ -649,8 +649,7 @@ std::vector<std::vector<int>> Parse(const std::string& filename) {
   return ret;
 }
 
-template <std::size_t N>
-void VerifyBaseShapes() {
+template <std::size_t N> void VerifyBaseShapes() {
   if constexpr (N == 0) {
     return;
   } else {
@@ -661,8 +660,9 @@ void VerifyBaseShapes() {
     for (std::size_t i = 0; i < vs.size(); i++) {
       assert(vs[i].size() == std::size(base_shapes[i]));
       for (std::size_t j = 0; j < vs.size(); j++) {
-	std::cout << "(" << vs[i][j] << ',' << base_shapes[i][j] << ")\t" << std::flush;
-	assert(vs[i][j] == base_shapes[i][j]);
+        std::cout << "(" << vs[i][j] << ',' << base_shapes[i][j] << ")\t"
+                  << std::flush;
+        assert(vs[i][j] == base_shapes[i][j]);
       }
       std::cout << std::endl;
     }
