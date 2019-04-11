@@ -655,16 +655,47 @@ template <std::size_t N> void VerifyBaseShapes() {
   } else {
     VerifyBaseShapes<N - 1>();
     auto vs = Parse("hb/hb_1_" + std::to_string(N) + ".txt");
-    auto base_shapes = BaseShape<N>();
-    assert(vs.size() == base_shapes.size());
+    auto base_shape = BaseShape<N>();
+    assert(vs.size() == base_shape.size());
     for (std::size_t i = 0; i < vs.size(); i++) {
-      assert(vs[i].size() == std::size(base_shapes[i]));
+      assert(vs[i].size() == std::size(base_shape[i]));
+    }
+  }
+}
+
+template <std::size_t N> void BruteForceRotationsFromDataFiles() {
+  constexpr auto rotations = RotationAndMirrorMatrices<N>();
+  constexpr auto base_shape = BaseShape<N>();
+  auto base_shape_offset = base_shape;
+  std::transform(std::begin(base_shape_offset), std::end(base_shape_offset),
+                 std::begin(base_shape_offset),
+                 [](Vector<N> &v) { return v * 2 - Ones<N>(); });
+  auto vs = Parse("hb/hb_2_" + std::to_string(N) + ".txt");
+  for (std::size_t i = 0; i < std::size(base_shape); i++) {
+    std::array<Vector<N>, base_shape.size()> rotated;
+    for (std::size_t j = 0; j < std::size(base_shape); j++) {
+      const auto &v = vs[std::size(base_shape) * i + j];
+      for (std::size_t k = 0; k < N; k++) {
+        rotated[j][k] = (v[k] - 2 * base_shape[i][k]) * 2 - 1;
+      }
+    }
+
+    std::cout << "trying " << i << std::endl;
+    for (const auto &rotation : rotations) {
+      bool satisfies = true;
+      for (std::size_t j = 0; j < std::size(base_shape); j++) {
+        if (rotation * base_shape_offset[j] != rotated[j]) {
+          satisfies = false;
+          break;
+        }
+      }
+      if (satisfies) {
+        PrintCompressedRotationMatrix(rotation);
+      }
     }
   }
 }
 
 int main() {
-  VerifyBaseShapes<10>();
-  // BruteForceRotations();
   return 0;
 }
