@@ -54,6 +54,24 @@ constexpr Vector<N> operator*(const Vector<N> &v, int x) {
 }
 
 template <std::size_t N>
+constexpr Vector<N> operator/(const Vector<N> &v, int x) {
+  Vector<N> ret{};
+  for (std::size_t i = 0; i < N; i++) {
+    ret[i] = v[i] / x;
+  }
+  return ret;
+}
+
+template <std::size_t N>
+constexpr Vector<N> operator+(const Vector<N> &v1, const Vector<N> &v2) {
+  Vector<N> ret{};
+  for (std::size_t i = 0; i < N; i++) {
+    ret[i] = v1[i] + v2[i];
+  }
+  return ret;
+}
+
+template <std::size_t N>
 constexpr Vector<N> operator-(const Vector<N> &v1, const Vector<N> &v2) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
@@ -674,7 +692,7 @@ BruteForceRotationsFromDataFiles() {
                  [](Vector<N> &v) { return v * 2 - Ones<N>(); });
   auto vs = Parse("hb/hb_2_" + std::to_string(N) + ".txt");
   if constexpr (N == 2) {
-    for (auto& v : vs) {
+    for (auto &v : vs) {
       std::reverse(v.begin(), v.end());
     }
   }
@@ -744,7 +762,7 @@ void TestRotations() {
 
 void VerifyRotations() {
   constexpr std::size_t N = 2;
-  // assert(BruteForceRotationsFromDataFiles<N>() == Rotations<N>());
+  assert(BruteForceRotationsFromDataFiles<N>() == Rotations<N>());
   for (const auto &rotation : BruteForceRotationsFromDataFiles<N>()) {
     PrintCompressedRotationMatrix(rotation);
   }
@@ -754,7 +772,46 @@ void VerifyRotations() {
   }
 }
 
+constexpr std::size_t Pow(std::size_t b, std::size_t e) {
+  std::size_t p = 1;
+  for (std::size_t i = 0; i < e; i++) {
+    p *= b;
+  }
+  return p;
+}
+
+template <std::size_t N, std::size_t K>
+constexpr std::array<Vector<N>, Pow(1 << N, K)> Hilbert() {
+  std::array<Vector<N>, Pow(1 << N, K)> ret{};
+  if constexpr (K > 0) {
+    constexpr auto base_shape = BaseShape<N>();
+    constexpr auto rotations = Rotations<N>();
+    auto prev = Hilbert<N, K - 1>();
+    std::size_t current = 0;
+    for (std::size_t i = 0; i < std::size(base_shape); i++) {
+      for (const auto &v : prev) {
+        Vector<N> offset{};
+        if constexpr (K > 1) {
+          offset = Ones<N>() * (1 << (K - 2));
+        }
+        auto v2 = v * 2 - offset;
+        v2 = rotations[i] * v2;
+        v2 = (v2 + offset) / 2;
+        ret[current++] = v2 + base_shape[i] * (1 << (K - 1));
+      }
+    }
+  }
+  return ret;
+}
+
+void TestHilbert() {
+  constexpr auto hilbert = Hilbert<3, 2>();
+  for (const auto &v : hilbert) {
+    PrintVector(v);
+  }
+}
+
 int main() {
-  VerifyRotations();
+  TestHilbert();
   return 0;
 }
