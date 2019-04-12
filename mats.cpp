@@ -663,7 +663,9 @@ template <std::size_t N> void VerifyBaseShapes() {
   }
 }
 
-template <std::size_t N> void BruteForceRotationsFromDataFiles() {
+template <std::size_t N>
+std::array<CompressedRotationMatrix<N>, (1 << N)>
+BruteForceRotationsFromDataFiles() {
   constexpr auto rotations = RotationAndMirrorMatrices<N>();
   constexpr auto base_shape = BaseShape<N>();
   auto base_shape_offset = base_shape;
@@ -671,6 +673,7 @@ template <std::size_t N> void BruteForceRotationsFromDataFiles() {
                  std::begin(base_shape_offset),
                  [](Vector<N> &v) { return v * 2 - Ones<N>(); });
   auto vs = Parse("hb/hb_2_" + std::to_string(N) + ".txt");
+  std::array<CompressedRotationMatrix<N>, (1 << N)> ret{};
   for (std::size_t i = 0; i < std::size(base_shape); i++) {
     std::array<Vector<N>, base_shape.size()> rotated;
     for (std::size_t j = 0; j < std::size(base_shape); j++) {
@@ -680,7 +683,6 @@ template <std::size_t N> void BruteForceRotationsFromDataFiles() {
       }
     }
 
-    std::cout << "trying " << i << std::endl;
     for (const auto &rotation : rotations) {
       bool satisfies = true;
       for (std::size_t j = 0; j < std::size(base_shape); j++) {
@@ -690,10 +692,11 @@ template <std::size_t N> void BruteForceRotationsFromDataFiles() {
         }
       }
       if (satisfies) {
-        PrintCompressedRotationMatrix(rotation);
+        ret[i] = rotation;
       }
     }
   }
+  return ret;
 }
 
 template <std::size_t N>
@@ -728,14 +731,25 @@ constexpr std::array<CompressedRotationMatrix<N>, (1 << N)> Rotations() {
 }
 
 void TestRotations() {
-  // constexpr auto rotations = Rotations<4>();
-  auto rotations = Rotations<5>();
+  constexpr auto rotations = Rotations<4>();
   for (const auto &rotation : rotations) {
     PrintCompressedRotationMatrix(rotation);
   }
 }
 
+void VerifyRotations() {
+  constexpr std::size_t N = 2;
+  // assert(BruteForceRotationsFromDataFiles<N>() == Rotations<N>());
+  for (const auto &rotation : BruteForceRotationsFromDataFiles<N>()) {
+    PrintCompressedRotationMatrix(rotation);
+  }
+  std::cout << std::endl;
+  for (const auto &rotation : Rotations<N>()) {
+    PrintCompressedRotationMatrix(rotation);
+  }
+}
+
 int main() {
-  TestRotations();
+  VerifyRotations();
   return 0;
 }
