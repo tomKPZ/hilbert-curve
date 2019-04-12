@@ -696,6 +696,46 @@ template <std::size_t N> void BruteForceRotationsFromDataFiles() {
   }
 }
 
+template <std::size_t N>
+constexpr std::array<CompressedRotationMatrix<N>, (1 << N)> Rotations() {
+  std::array<CompressedRotationMatrix<N>, (1 << N)> ret{};
+
+  constexpr auto transitions = Transitions<N>();
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    std::size_t d = N;
+    for (std::size_t j = 0; j < N; j++) {
+      if (transitions[i + 1][j] - transitions[i][j] != 0) {
+        d = N - j - 1;
+        break;
+      }
+    }
+    for (std::size_t j = 0; j < N; j++) {
+      ret[i].order[j] = d;
+      d = (d + 1) % N;
+    }
+  }
+
+  for (std::size_t j = 0; j < N; j++) {
+    std::size_t c = j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1;
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      ret[i].signs[j] = c & (1 << (j + 1));
+      c++;
+    }
+  }
+  ret[0].signs[0] = 1;
+
+  return ret;
+}
+
+void TestRotations() {
+  // constexpr auto rotations = Rotations<4>();
+  auto rotations = Rotations<5>();
+  for (const auto &rotation : rotations) {
+    PrintCompressedRotationMatrix(rotation);
+  }
+}
+
 int main() {
+  TestRotations();
   return 0;
 }
