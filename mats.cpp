@@ -673,6 +673,11 @@ BruteForceRotationsFromDataFiles() {
                  std::begin(base_shape_offset),
                  [](Vector<N> &v) { return v * 2 - Ones<N>(); });
   auto vs = Parse("hb/hb_2_" + std::to_string(N) + ".txt");
+  if constexpr (N == 2) {
+    for (auto& v : vs) {
+      std::reverse(v.begin(), v.end());
+    }
+  }
   std::array<CompressedRotationMatrix<N>, (1 << N)> ret{};
   for (std::size_t i = 0; i < std::size(base_shape); i++) {
     std::array<Vector<N>, base_shape.size()> rotated;
