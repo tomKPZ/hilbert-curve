@@ -790,10 +790,7 @@ constexpr std::array<Vector<N>, Pow(1 << N, K)> Hilbert() {
     std::size_t current = 0;
     for (std::size_t i = 0; i < std::size(base_shape); i++) {
       for (const auto &v : prev) {
-        Vector<N> offset{};
-        if constexpr (K > 1) {
-          offset = Ones<N>() * (1 << (K - 2));
-        }
+        constexpr Vector<N> offset = Ones<N>() * ((1 << (K - 1)) - 1);
         auto v2 = v * 2 - offset;
         v2 = rotations[i] * v2;
         v2 = (v2 + offset) / 2;
@@ -805,13 +802,68 @@ constexpr std::array<Vector<N>, Pow(1 << N, K)> Hilbert() {
 }
 
 void TestHilbert() {
-  constexpr auto hilbert = Hilbert<3, 2>();
+  constexpr auto hilbert = Hilbert<3, 3>();
   for (const auto &v : hilbert) {
     PrintVector(v);
   }
 }
 
+template <std::size_t N, std::size_t K> void VerifyHilbert() {
+  constexpr auto hilbert = Hilbert<N, K>();
+  auto vs =
+      Parse("hb/hb_" + std::to_string(K) + "_" + std::to_string(N) + ".txt");
+  if constexpr (N == 2) {
+    for (auto &v : vs) {
+      std::reverse(v.begin(), v.end());
+    }
+  }
+  assert(hilbert.size() == vs.size());
+  for (std::size_t i = 0; i < hilbert.size(); i++) {
+    assert(vs[i].size() == hilbert[i].size());
+    for (std::size_t j = 0; j < hilbert[i].size(); j++) {
+      assert(vs[i][j] == hilbert[i][j]);
+    }
+  }
+}
+
+void VerifyHilbert() {
+  VerifyHilbert<1, 1>();
+  VerifyHilbert<1, 2>();
+  VerifyHilbert<1, 3>();
+  VerifyHilbert<1, 4>();
+  VerifyHilbert<1, 5>();
+  VerifyHilbert<1, 6>();
+  VerifyHilbert<1, 7>();
+  VerifyHilbert<1, 8>();
+  VerifyHilbert<1, 9>();
+  VerifyHilbert<1, 10>();
+
+  VerifyHilbert<2, 1>();
+  VerifyHilbert<2, 2>();
+  VerifyHilbert<2, 3>();
+  VerifyHilbert<2, 4>();
+  VerifyHilbert<2, 5>();
+
+  VerifyHilbert<3, 1>();
+  VerifyHilbert<3, 2>();
+  VerifyHilbert<3, 3>();
+
+  VerifyHilbert<4, 1>();
+  VerifyHilbert<4, 2>();
+
+  VerifyHilbert<5, 1>();
+  VerifyHilbert<5, 2>();
+
+  VerifyHilbert<6, 1>();
+
+  VerifyHilbert<7, 1>();
+
+  VerifyHilbert<8, 1>();
+
+  VerifyHilbert<9, 1>();
+}
+
 int main() {
-  TestHilbert();
+  VerifyHilbert();
   return 0;
 }
