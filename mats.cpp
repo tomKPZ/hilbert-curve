@@ -827,43 +827,139 @@ template <std::size_t N, std::size_t K> void VerifyHilbert() {
 }
 
 void VerifyHilbert() {
-  VerifyHilbert<1, 1>();
-  VerifyHilbert<1, 2>();
-  VerifyHilbert<1, 3>();
-  VerifyHilbert<1, 4>();
-  VerifyHilbert<1, 5>();
-  VerifyHilbert<1, 6>();
-  VerifyHilbert<1, 7>();
-  VerifyHilbert<1, 8>();
-  VerifyHilbert<1, 9>();
-  VerifyHilbert<1, 10>();
+  // VerifyHilbert<1, 1>();
+  // VerifyHilbert<1, 2>();
+  // VerifyHilbert<1, 3>();
+  // VerifyHilbert<1, 4>();
+  // VerifyHilbert<1, 5>();
+  // VerifyHilbert<1, 6>();
+  // VerifyHilbert<1, 7>();
+  // VerifyHilbert<1, 8>();
+  // VerifyHilbert<1, 9>();
+  // VerifyHilbert<1, 10>();
 
-  VerifyHilbert<2, 1>();
-  VerifyHilbert<2, 2>();
-  VerifyHilbert<2, 3>();
-  VerifyHilbert<2, 4>();
-  VerifyHilbert<2, 5>();
+  // VerifyHilbert<2, 1>();
+  // VerifyHilbert<2, 2>();
+  // VerifyHilbert<2, 3>();
+  // VerifyHilbert<2, 4>();
+  // VerifyHilbert<2, 5>();
 
-  VerifyHilbert<3, 1>();
-  VerifyHilbert<3, 2>();
-  VerifyHilbert<3, 3>();
+  // VerifyHilbert<3, 1>();
+  // VerifyHilbert<3, 2>();
+  // VerifyHilbert<3, 3>();
 
-  VerifyHilbert<4, 1>();
-  VerifyHilbert<4, 2>();
+  // VerifyHilbert<4, 1>();
+  // VerifyHilbert<4, 2>();
 
-  VerifyHilbert<5, 1>();
-  VerifyHilbert<5, 2>();
+  // VerifyHilbert<5, 1>();
+  // VerifyHilbert<5, 2>();
 
-  VerifyHilbert<6, 1>();
+  // VerifyHilbert<6, 1>();
 
-  VerifyHilbert<7, 1>();
+  // VerifyHilbert<7, 1>();
 
-  VerifyHilbert<8, 1>();
+  // VerifyHilbert<8, 1>();
 
-  VerifyHilbert<9, 1>();
+  // VerifyHilbert<9, 1>();
+}
+
+template <std::size_t N> struct HilbertConstants {
+  constexpr static auto base_shape = BaseShape<N>();
+  constexpr static auto rotations = Rotations<N>();
+};
+
+template <std::size_t N, std::size_t K> std::vector<Vector<N>> HilbertVector() {
+  std::vector<Vector<N>> ret;
+  if constexpr (K == 0) {
+    ret.push_back(Vector<N>{});
+  } else {
+    auto prev = Hilbert<N, K - 1>();
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      for (const auto &v : prev) {
+        constexpr Vector<N> offset = Ones<N>() * ((1 << (K - 1)) - 1);
+        auto v2 = v * 2 - offset;
+        v2 = HilbertConstants<N>::rotations[i] * v2;
+        v2 = (v2 + offset) / 2;
+        ret.push_back(v2 + HilbertConstants<N>::base_shape[i] * (1 << (K - 1)));
+      }
+    }
+  }
+  return ret;
+}
+
+template <std::size_t N, std::size_t K> void VerifyHilbertVector() {
+  std::cout << "Verifying " << N << "," << K << std::endl;
+  auto hilbert = HilbertVector<N, K>();
+  auto vs =
+      Parse("hb/hb_" + std::to_string(K) + "_" + std::to_string(N) + ".txt");
+  if constexpr (N == 2) {
+    for (auto &v : vs) {
+      std::reverse(v.begin(), v.end());
+    }
+  }
+  assert(hilbert.size() == vs.size());
+  for (std::size_t i = 0; i < hilbert.size(); i++) {
+    assert(vs[i].size() == hilbert[i].size());
+    for (std::size_t j = 0; j < hilbert[i].size(); j++) {
+      assert(vs[i][j] == hilbert[i][j]);
+    }
+  }
+}
+
+void VerifyHilbertVector() {
+  VerifyHilbertVector<1, 1>();
+  VerifyHilbertVector<1, 10>();
+  VerifyHilbertVector<1, 2>();
+  VerifyHilbertVector<1, 3>();
+  VerifyHilbertVector<1, 4>();
+  VerifyHilbertVector<1, 5>();
+  VerifyHilbertVector<1, 6>();
+  VerifyHilbertVector<1, 7>();
+  VerifyHilbertVector<1, 8>();
+  VerifyHilbertVector<1, 9>();
+  VerifyHilbertVector<2, 1>();
+  VerifyHilbertVector<2, 10>();
+  VerifyHilbertVector<2, 2>();
+  VerifyHilbertVector<2, 3>();
+  VerifyHilbertVector<2, 4>();
+  VerifyHilbertVector<2, 5>();
+  VerifyHilbertVector<2, 6>();
+  VerifyHilbertVector<2, 7>();
+  VerifyHilbertVector<2, 8>();
+  VerifyHilbertVector<2, 9>();
+  VerifyHilbertVector<3, 1>();
+  VerifyHilbertVector<3, 2>();
+  VerifyHilbertVector<3, 3>();
+  VerifyHilbertVector<3, 4>();
+  VerifyHilbertVector<3, 5>();
+  VerifyHilbertVector<3, 6>();
+  VerifyHilbertVector<4, 1>();
+  VerifyHilbertVector<4, 2>();
+  VerifyHilbertVector<4, 3>();
+  VerifyHilbertVector<4, 4>();
+  VerifyHilbertVector<4, 5>();
+  VerifyHilbertVector<5, 1>();
+  VerifyHilbertVector<5, 2>();
+  VerifyHilbertVector<5, 3>();
+  VerifyHilbertVector<5, 4>();
+  VerifyHilbertVector<6, 1>();
+  VerifyHilbertVector<6, 2>();
+  VerifyHilbertVector<6, 3>();
+  VerifyHilbertVector<7, 1>();
+  VerifyHilbertVector<7, 2>();
+  VerifyHilbertVector<7, 3>();
+  VerifyHilbertVector<8, 1>();
+  VerifyHilbertVector<8, 2>();
+  VerifyHilbertVector<8, 3>();
+  VerifyHilbertVector<9, 1>();
+  VerifyHilbertVector<9, 2>();
+  VerifyHilbertVector<10, 1>();
+  VerifyHilbertVector<10, 2>();
+  VerifyHilbertVector<11, 1>();
+  VerifyHilbertVector<11, 2>();
 }
 
 int main() {
-  VerifyHilbert();
+  VerifyHilbertVector();
   return 0;
 }
