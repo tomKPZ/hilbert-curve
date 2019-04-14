@@ -2,16 +2,15 @@
 
 #include <array>
 #include <cstdint>
-#include <vector>
 
 template <std::size_t N> class Hilbert {
 public:
   using VecN = std::array<int, N>;
 
   template <std::size_t K>
-  static constexpr std::array<VecN, 1 << N*K> Curve();
+  static constexpr std::array<VecN, 1 << N * K> Curve();
 
-  template <std::size_t K> static std::vector<VecN> CurveVector();
+  template <std::size_t K> static constexpr void Curve(VecN *vs);
 
 private:
   Hilbert() = delete;
@@ -113,53 +112,40 @@ private:
   static constexpr auto rotations = Rotations();
 };
 
+// static
 template <std::size_t N>
 template <std::size_t K>
-constexpr std::array<typename Hilbert<N>::VecN, 1 << N*K>
+constexpr std::array<typename Hilbert<N>::VecN, 1 << N * K>
 Hilbert<N>::Curve() {
-  std::array<VecN, 1 << N*K> ret{};
-  if constexpr (K > 0) {
-    auto prev = Curve<K - 1>();
-    std::size_t current = 0;
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      for (const auto &v : prev) {
-	VecN& v2 = ret[current++];
-	for (std::size_t j = 0; j < N; j++) {
-	  constexpr int offset = (1 << (K - 1)) - 1;
-	  const CompressedRotationMatrix& m = rotations[i];
-	  int v2j = 2*v[m.order[j]] - offset;
-	  v2j = (m.signs[j] ? 1 : -1) * v2j;
-	  v2j = (v2j + offset)/2;
-	  v2[j] = v2j + base_shape[i][j] * (1 << (K - 1));
-	}
-      }
-    }
-  }
+  std::array<VecN, 1 << N * K> ret{};
+  Curve<K>(&ret[0]);
   return ret;
 }
 
+// static
 template <std::size_t N>
 template <std::size_t K>
-std::vector<typename Hilbert<N>::VecN> Hilbert<N>::CurveVector() {
-  std::vector<VecN> ret;
+constexpr void Hilbert<N>::Curve(VecN *vs) {
   if constexpr (K == 0) {
-    ret.push_back(VecN{});
+    vs[0] = VecN{};
   } else {
-    auto prev = CurveVector<K - 1>();
+    VecN *prev_end = vs + (1 << N * K);
+    VecN *prev_begin = prev_end - (1 << N * (K - 1));
+    Curve<K - 1>(prev_begin);
+    std::size_t current = 0;
     for (std::size_t i = 0; i < (1 << N); i++) {
-      for (const auto &v : prev) {
-	VecN v2;
-	for (std::size_t j = 0; j < N; j++) {
-	  constexpr int offset = (1 << (K - 1)) - 1;
-	  const CompressedRotationMatrix& m = rotations[i];
-	  int v2j = 2*v[m.order[j]] - offset;
-	  v2j = (m.signs[j] ? 1 : -1) * v2j;
-	  v2j = (v2j + offset)/2;
-	  v2[j] = v2j + base_shape[i][j] * (1 << (K - 1));
-	}
-	ret.push_back(v2);
+      const CompressedRotationMatrix &m = rotations[i];
+      for (const VecN *v = prev_begin; v != prev_end; v++) {
+        VecN v2{};
+        for (std::size_t j = 0; j < N; j++) {
+          constexpr int offset = (1 << (K - 1)) - 1;
+          int v2j = 2 * (*v)[m.order[j]] - offset;
+          v2j = (m.signs[j] ? 1 : -1) * v2j;
+          v2j = (v2j + offset) / 2;
+          v2[j] = v2j + base_shape[i][j] * (1 << (K - 1));
+        }
+        vs[current++] = v2;
       }
     }
   }
-  return ret;
 }
