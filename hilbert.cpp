@@ -1,3 +1,3 @@
 #include "hilbert.hpp"
 
-int main(void) { Hilbert<3>::Curve(8); }
+int main(void) { Hilbert<3, short>::Curve(8); }
