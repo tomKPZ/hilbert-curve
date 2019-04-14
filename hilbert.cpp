@@ -3,47 +3,35 @@
 #include <cassert>
 #include <fstream>
 
-template<std::size_t N, std::size_t K>
-void WriteTestData() {
-  std::string fname = "test_data/" + std::to_string(N) + '_' + std::to_string(K);
-  std::ofstream fout;
-  fout.open(fname, std::ios::binary | std::ios::out);
-  for (const auto& v : HilbertVector<N, K>()) {
+template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
+  std::string fname =
+      "test_data/" + std::to_string(N) + '_' + std::to_string(K);
+  std::fstream f;
+  f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
+  for (const auto &v : HilbertVector<N, K>()) {
     for (int x : v) {
       uint8_t bytes[2];
-      bytes[0] = (x & 0xff00) >> 8;
-      bytes[1] = x & 0xff;
-      fout.write(reinterpret_cast<const char*>(bytes), sizeof(bytes));
+      if constexpr (Write) {
+        bytes[0] = (x & 0xff00) >> 8;
+        bytes[1] = x & 0xff;
+        f.write(reinterpret_cast<const char *>(bytes), sizeof(bytes));
+      } else {
+        f.read(reinterpret_cast<char *>(bytes), sizeof(bytes));
+        assert(f);
+        assert(x == (bytes[0] << 8) + bytes[1]);
+      }
     }
   }
-}
-
-template<std::size_t N, std::size_t K>
-void VerifyTestData() {
-  std::string fname = "test_data/" + std::to_string(N) + '_' + std::to_string(K);
-  std::ifstream fin;
-  fin.open(fname, std::ios::binary | std::ios::in);
-  for (const auto& v : HilbertVector<N, K>()) {
-    for (int x : v) {
-      uint8_t bytes[2];
-      fin.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
-      assert(fin);
-      assert(x == (bytes[0] << 8) + bytes[1]);
-    }
+  if constexpr (!Write) {
+    assert(f.peek() == EOF);
   }
-}
-
-template<std::size_t N, std::size_t K>
-void OpTestData() {
-  // WriteTestData<N, K>();
-  VerifyTestData<N, K>();
 }
 
 int main() {
   OpTestData<0, 0>();
   OpTestData<0, 1>();
   OpTestData<1, 0>();
-  
+
   OpTestData<1, 1>();
   OpTestData<1, 2>();
   OpTestData<1, 3>();

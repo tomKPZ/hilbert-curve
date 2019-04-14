@@ -963,19 +963,17 @@ void VerifyHilbertVector() {
   // VerifyHilbertVector<11, 2>();
 }
 
-template <std::size_t N, std::size_t K>
-void PrintSizesForDim() {
+template <std::size_t N, std::size_t K> void PrintSizesForDim() {
   std::size_t size = sizeof(Hilbert<N, K>());
   if (size > 1 && size < (1 << 20)) {
-    std::cout << N << ' ' << K << ' '<< size << std::endl;
+    std::cout << N << ' ' << K << ' ' << size << std::endl;
   }
   if constexpr (K > 1) {
-    PrintSizesForDim<N, K-1>();
+    PrintSizesForDim<N, K - 1>();
   }
 }
 
-template <std::size_t N, std::size_t K>
-void PrintSizes() {
+template <std::size_t N, std::size_t K> void PrintSizes() {
   PrintSizesForDim<N, K>();
   if constexpr (N > 1) {
     PrintSizes<N - 1, K>();
