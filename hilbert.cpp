@@ -8,7 +8,7 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
-  for (const auto &v : HilbertVector<N, K>()) {
+  for (const auto &v : Hilbert<N>::template CurveVector<K>()) {
     for (int x : v) {
       uint8_t bytes[2];
       if constexpr (Write) {
