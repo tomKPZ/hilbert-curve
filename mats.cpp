@@ -735,9 +735,11 @@ constexpr std::array<CompressedRotationMatrix<N>, (1 << N)> Rotations() {
         break;
       }
     }
-    for (std::size_t j = 0; j < N; j++) {
-      ret[i].order[j] = d;
-      d = (d + 1) % N;
+    if constexpr (N > 0) {
+      for (std::size_t j = 0; j < N; j++) {
+        ret[i].order[j] = d;
+        d = (d + 1) % N;
+      }
     }
   }
 
@@ -748,7 +750,9 @@ constexpr std::array<CompressedRotationMatrix<N>, (1 << N)> Rotations() {
       c++;
     }
   }
-  ret[0].signs[0] = 1;
+  if constexpr (N > 0) {
+    ret[0].signs[0] = 1;
+  }
 
   return ret;
 }
@@ -802,7 +806,7 @@ constexpr std::array<Vector<N>, Pow(1 << N, K)> Hilbert() {
 }
 
 void TestHilbert() {
-  constexpr auto hilbert = Hilbert<3, 3>();
+  constexpr auto hilbert = Hilbert<0, 0>();
   for (const auto &v : hilbert) {
     PrintVector(v);
   }
@@ -959,4 +963,28 @@ void VerifyHilbertVector() {
   // VerifyHilbertVector<11, 2>();
 }
 
-int main() { return 0; }
+template <std::size_t N, std::size_t K>
+void PrintSizesForDim() {
+  std::size_t size = sizeof(Hilbert<N, K>());
+  if (size > 1 && size < (1 << 20)) {
+    std::cout << N << ' ' << K << ' '<< size << std::endl;
+  }
+  if constexpr (K > 1) {
+    PrintSizesForDim<N, K-1>();
+  }
+}
+
+template <std::size_t N, std::size_t K>
+void PrintSizes() {
+  PrintSizesForDim<N, K>();
+  if constexpr (N > 1) {
+    PrintSizes<N - 1, K>();
+  }
+}
+
+int main() {
+  PrintSizes<10, 10>();
+  PrintSizes<3, 15>();
+  PrintSizes<20, 2>();
+  return 0;
+}
