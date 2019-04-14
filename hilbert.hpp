@@ -10,7 +10,7 @@ public:
   template <std::size_t K>
   static constexpr std::array<VecN, 1 << N * K> Curve();
 
-  template <std::size_t K> static constexpr void Curve(VecN *vs);
+  static constexpr void Curve(VecN *vs, std::size_t K);
 
 private:
   Hilbert() = delete;
@@ -118,27 +118,26 @@ template <std::size_t K>
 constexpr std::array<typename Hilbert<N>::VecN, 1 << N * K>
 Hilbert<N>::Curve() {
   std::array<VecN, 1 << N * K> ret{};
-  Curve<K>(&ret[0]);
+  Curve(&ret[0], K);
   return ret;
 }
 
 // static
 template <std::size_t N>
-template <std::size_t K>
-constexpr void Hilbert<N>::Curve(VecN *vs) {
-  if constexpr (K == 0) {
+constexpr void Hilbert<N>::Curve(VecN *vs, std::size_t K) {
+  if (K == 0) {
     vs[0] = VecN{};
   } else {
     VecN *prev_end = vs + (1 << N * K);
     VecN *prev_begin = prev_end - (1 << N * (K - 1));
-    Curve<K - 1>(prev_begin);
+    Curve(prev_begin, K - 1);
     std::size_t current = 0;
     for (std::size_t i = 0; i < (1 << N); i++) {
       const CompressedRotationMatrix &m = rotations[i];
       for (const VecN *v = prev_begin; v != prev_end; v++) {
         VecN v2{};
         for (std::size_t j = 0; j < N; j++) {
-          constexpr int offset = (1 << (K - 1)) - 1;
+          int offset = (1 << (K - 1)) - 1;
           int v2j = 2 * (*v)[m.order[j]] - offset;
           v2j = (m.signs[j] ? 1 : -1) * v2j;
           v2j = (v2j + offset) / 2;
