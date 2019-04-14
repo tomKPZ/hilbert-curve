@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 
 template <std::size_t N> class Hilbert {
 public:
@@ -9,6 +10,8 @@ public:
 
   template <std::size_t K>
   static constexpr std::array<VecN, 1 << N * K> Curve();
+
+  static std::unique_ptr<VecN[]> Curve(std::size_t K);
 
   static constexpr void Curve(VecN *vs, std::size_t K);
 
@@ -119,6 +122,14 @@ constexpr std::array<typename Hilbert<N>::VecN, 1 << N * K>
 Hilbert<N>::Curve() {
   std::array<VecN, 1 << N * K> ret{};
   Curve(&ret[0], K);
+  return ret;
+}
+
+// static
+template <std::size_t N>
+std::unique_ptr<typename Hilbert<N>::VecN[]> Hilbert<N>::Curve(std::size_t K) {
+  std::unique_ptr<Hilbert<N>::VecN[]> ret(new Hilbert<N>::VecN[1 << (N * K)]);
+  Hilbert<N>::Curve(ret.get(), K);
   return ret;
 }
 
