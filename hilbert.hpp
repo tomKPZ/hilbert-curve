@@ -7,18 +7,17 @@
 
 template <std::size_t N, typename Int = int> class Hilbert {
 public:
-  using VecN = std::array<Int, N>;
+  using Vec = std::array<Int, N>;
 
-  template <std::size_t K>
-  static constexpr std::array<VecN, 1 << N * K> Curve();
+  template <std::size_t K> static constexpr std::array<Vec, 1 << N * K> Curve();
 
-  static std::unique_ptr<VecN[]> Curve(std::size_t K);
+  static std::unique_ptr<Vec[]> Curve(std::size_t K);
 
-  static constexpr void Curve(VecN *vs, std::size_t K);
+  static constexpr void Curve(Vec *vs, std::size_t K);
 
-  static constexpr VecN Offset(const VecN &v, std::size_t K);
+  static constexpr Vec Offset(const Vec &v, std::size_t K);
 
-  static constexpr VecN Unoffset(const VecN &v, std::size_t K);
+  static constexpr Vec Unoffset(const Vec &v, std::size_t K);
 
 private:
   static_assert(std::is_signed_v<Int>);
@@ -26,8 +25,6 @@ private:
   Hilbert() = delete;
 
   friend class Hilbert<N + 1, Int>;
-
-  template <std::size_t M> using Vec = std::array<Int, M>;
 
   struct CompressedRotationMatrix {
     std::array<std::size_t, N> order;
@@ -43,15 +40,15 @@ private:
     return d_first;
   }
 
-  static constexpr std::array<VecN, (1 << N)> BaseShape() {
+  static constexpr std::array<Vec, (1 << N)> BaseShape() {
     constexpr std::size_t TwoPowN = 1 << N;
-    std::array<VecN, TwoPowN> ret{};
+    std::array<Vec, TwoPowN> ret{};
     if constexpr (N > 0) {
-      std::array<Vec<N - 1>, TwoPowN / 2> np = Hilbert<N - 1, Int>::BaseShape();
+      auto np = Hilbert<N - 1, Int>::BaseShape();
       for (std::size_t i : {0, 1}) {
         for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-          VecN &new_vec = ret[i * TwoPowN / 2 + j];
-          Vec<N - 1> &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
+          Vec &new_vec = ret[i * TwoPowN / 2 + j];
+          auto &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
           Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
           new_vec[N - 1] = i ? 1 : -1;
         }
@@ -60,23 +57,22 @@ private:
     return ret;
   }
 
-  static constexpr std::array<VecN, (1 << N) + 1> Transitions() {
+  static constexpr std::array<Vec, (1 << N) + 1> Transitions() {
     constexpr std::size_t TwoPowN = 1 << N;
-    std::array<VecN, TwoPowN + 1> ret{};
+    std::array<Vec, TwoPowN + 1> ret{};
     if constexpr (N > 0) {
-      std::array<Vec<N - 1>, TwoPowN / 2 + 1> np =
-          Hilbert<N - 1, Int>::Transitions();
+      auto np = Hilbert<N - 1, Int>::Transitions();
       for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-        VecN &new_vec = ret[j];
-        Vec<N - 1> &old_vec = np[j];
+        Vec &new_vec = ret[j];
+        auto &old_vec = np[j];
         Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
         new_vec[N - 1] = 0;
       }
       ret[TwoPowN / 2] = ret[TwoPowN / 2 - 1];
       ret[TwoPowN / 2][N - 1] = 1;
       for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-        VecN &new_vec = ret[TwoPowN / 2 + 1 + j];
-        Vec<N - 1> &old_vec = np[TwoPowN / 2 - 1 - j];
+        Vec &new_vec = ret[TwoPowN / 2 + 1 + j];
+        auto &old_vec = np[TwoPowN / 2 - 1 - j];
         Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
         new_vec[N - 1] = 2;
       }
@@ -125,38 +121,38 @@ private:
 // static
 template <std::size_t N, typename Int>
 template <std::size_t K>
-constexpr std::array<typename Hilbert<N, Int>::VecN, 1 << N * K>
+constexpr std::array<typename Hilbert<N, Int>::Vec, 1 << N * K>
 Hilbert<N, Int>::Curve() {
-  std::array<VecN, 1 << N * K> ret{};
+  std::array<Vec, 1 << N * K> ret{};
   Curve(&ret[0], K);
   return ret;
 }
 
 // static
 template <std::size_t N, typename Int>
-std::unique_ptr<typename Hilbert<N, Int>::VecN[]>
+std::unique_ptr<typename Hilbert<N, Int>::Vec[]>
 Hilbert<N, Int>::Curve(std::size_t K) {
-  std::unique_ptr<Hilbert<N, Int>::VecN[]> ret(
-      new Hilbert<N, Int>::VecN[1 << (N * K)]);
+  std::unique_ptr<Hilbert<N, Int>::Vec[]> ret(
+      new Hilbert<N, Int>::Vec[1 << (N * K)]);
   Curve(ret.get(), K);
   return ret;
 }
 
 // static
 template <std::size_t N, typename Int>
-constexpr void Hilbert<N, Int>::Curve(VecN *vs, std::size_t K) {
+constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
   if (K == 0) {
-    vs[0] = VecN{};
+    vs[0] = Vec{};
   } else {
-    VecN *prev_end = vs + (1 << N * K);
-    VecN *prev_begin = prev_end - (1 << N * (K - 1));
+    Vec *prev_end = vs + (1 << N * K);
+    Vec *prev_begin = prev_end - (1 << N * (K - 1));
     Curve(prev_begin, K - 1);
     std::size_t current = 0;
     for (std::size_t i = 0; i < (1 << N); i++) {
       const CompressedRotationMatrix &m = rotations[i];
-      for (const VecN *v = prev_begin; v != prev_end; v++) {
+      for (const Vec *v = prev_begin; v != prev_end; v++) {
         // TODO: avoid v2 copy.
-        VecN v2{};
+        Vec v2{};
         for (std::size_t j = 0; j < N; j++) {
           Int v2j = (*v)[m.order[j]] * (m.signs[j] ? 1 : -1);
           v2[j] = v2j + (base_shape[i][j]) * (1 << (K - 1));
@@ -169,9 +165,9 @@ constexpr void Hilbert<N, Int>::Curve(VecN *vs, std::size_t K) {
 
 // static
 template <std::size_t N, typename Int>
-constexpr typename Hilbert<N, Int>::VecN
-Hilbert<N, Int>::Offset(const VecN &v, std::size_t K) {
-  VecN ret{};
+constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::Offset(const Vec &v,
+                                                                std::size_t K) {
+  Vec ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = (v[i] + (1 << K)) / 2;
   }
@@ -180,9 +176,9 @@ Hilbert<N, Int>::Offset(const VecN &v, std::size_t K) {
 
 // static
 template <std::size_t N, typename Int>
-constexpr typename Hilbert<N, Int>::VecN
-Hilbert<N, Int>::Unoffset(const VecN &v, std::size_t K) {
-  VecN ret{};
+constexpr typename Hilbert<N, Int>::Vec
+Hilbert<N, Int>::Unoffset(const Vec &v, std::size_t K) {
+  Vec ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = v[i] * 2 - (1 << K);
   }
