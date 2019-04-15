@@ -9,12 +9,40 @@ template <std::size_t N, typename Int = int> class Hilbert {
 public:
   using Vec = std::array<Int, N>;
 
+  // Computes the K'th iteration of the Hilbert curve.  Returns an
+  // array of 2^(N*K) Vec's.  Use this version of Curve() when K is a
+  // small constant known at compile time.  Example:
+  //     // Compute the 3rd iteration of a 2D Hilbert curve.
+  //     constexpr auto curve = Hilbert<2>::Curve<3>();
+  //     for (const auto& v : curve) { ... }
   template <std::size_t K> static constexpr std::array<Vec, 1 << N * K> Curve();
 
+  // Computes the K'th iteration of the Hilbert curve.  Returns a
+  // heap-allocated array of 2^(N*K) Vec's.  Use this version of
+  // Curve() when K is large or not known at compile time; and you
+  // haven't already allocated memory for the result.  Example:
+  //     // Compute the 3rd iteration of a 2D Hilbert curve.
+  //     auto curve = Hilbert<2>::Curve(3);
+  //     for (std::size_t i = 0; i < 1 << (2*3); i++) {
+  //       const auto& v = curve[i];
+  //       ...
+  //     }
   static std::unique_ptr<Vec[]> Curve(std::size_t K);
 
+  // Computes the K'th iteration of the Hilbert curve.  Fills vs
+  // with 2^(N*K) Vec's.  Use this version of Curve() when K is large
+  // or not known at compile time; and you have already allocated
+  // memory for the result.  Example:
+  //     // Compute the 3rd iteration of a 2D Hilbert curve.
+  //     Hilbert<2>::Vec curve[1 << (2*3)];
+  //     Hilbert<2>::Curve(curve, 3);
+  //     for (const auto& v : curve) { ... }
   static constexpr void Curve(Vec *vs, std::size_t K);
 
+  // Returns the i'th vector of Curve(K).  Example:
+  //     // Compute the 5th vector in the 3rd iteration of a 2D
+  //     // Hilbert curve.
+  //     auto v = Hilbert<2>::IToV(5, 3);
   static constexpr Vec IToV(std::size_t i, std::size_t K);
 
   static constexpr std::size_t VToI(const Vec &v, std::size_t K);
