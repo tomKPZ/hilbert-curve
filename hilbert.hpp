@@ -17,6 +17,8 @@ public:
 
   static constexpr Vec IToV(std::size_t i, std::size_t K);
 
+  // static constexpr std::size_t VToI(const Vec& v, std::size_t K);
+
   static constexpr Vec Offset(const Vec &v, std::size_t K);
 
   static constexpr Vec Unoffset(const Vec &v, std::size_t K);
@@ -42,17 +44,18 @@ private:
     return d_first;
   }
 
-  static constexpr std::array<Vec, (1 << N)> BaseShape() {
+  static constexpr std::array<std::size_t, (1 << N)> BaseShape() {
     constexpr std::size_t TwoPowN = 1 << N;
-    std::array<Vec, TwoPowN> ret{};
+    std::array<std::size_t, TwoPowN> ret{};
     if constexpr (N > 0) {
       auto np = Hilbert<N - 1, Int>::BaseShape();
       for (std::size_t i : {0, 1}) {
         for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-          Vec &new_vec = ret[i * TwoPowN / 2 + j];
-          auto &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
-          Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
-          new_vec[N - 1] = i ? 1 : -1;
+          auto &new_vec = ret[i * TwoPowN / 2 + j];
+          new_vec = np[i ? TwoPowN / 2 - 1 - j : j];
+          if (i) {
+            new_vec |= 1 << (N - 1);
+          }
         }
       }
     }
@@ -158,7 +161,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
         v2[j] = (*p)[m.order[j]] * (m.signs[j] ? 1 : -1) +
-                base_shape[i][j] * (1 << (K - 1));
+                ((base_shape[i] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
       }
     }
   }
@@ -170,7 +173,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
     Vec &v2 = vs[current++];
     for (std::size_t j = 0; j < N; j++) {
       v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-              base_shape[0][j] * (1 << (K - 1));
+              ((base_shape[0] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
     }
   }
 }
@@ -191,10 +194,15 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   Vec v;
   for (std::size_t j = 0; j < N; j++) {
     v[j] = section_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-           base_shape[section][j] * (1 << (K - 1));
+           ((base_shape[section] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
   }
   return v;
 }
+
+// static
+// template <std::size_t N, typename Int>
+// constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
+// }
 
 // static
 template <std::size_t N, typename Int>
