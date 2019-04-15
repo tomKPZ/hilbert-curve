@@ -10,6 +10,7 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
   auto buf = Hilbert<N>::Curve(K);
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
+    assert(Hilbert<N>::IToV(i, K) == buf[i]);
     const auto v = Hilbert<N>::Offset(buf[i], K);
     for (int x : v) {
       uint8_t bytes[2];
