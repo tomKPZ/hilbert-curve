@@ -26,7 +26,7 @@ private:
 
   friend class Hilbert<N + 1, Int>;
 
-  struct CompressedRotationMatrix {
+  struct CompressedPermutationMatrix {
     std::array<std::size_t, N> order;
     std::array<bool, N> signs;
   };
@@ -80,8 +80,9 @@ private:
     return ret;
   }
 
-  static constexpr std::array<CompressedRotationMatrix, (1 << N)> Rotations() {
-    std::array<CompressedRotationMatrix, (1 << N)> ret{};
+  static constexpr std::array<CompressedPermutationMatrix, (1 << N)>
+  Transformations() {
+    std::array<CompressedPermutationMatrix, (1 << N)> ret{};
 
     constexpr auto transitions = Transitions();
     for (std::size_t i = 0; i < (1 << N); i++) {
@@ -115,7 +116,7 @@ private:
   }
 
   static constexpr auto base_shape = BaseShape();
-  static constexpr auto rotations = Rotations();
+  static constexpr auto transformations = Transformations();
 };
 
 // static
@@ -143,21 +144,21 @@ template <std::size_t N, typename Int>
 constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
   if (K == 0) {
     vs[0] = Vec{};
-  } else {
-    Vec *prev_end = vs + (1 << N * K);
-    Vec *prev_begin = prev_end - (1 << N * (K - 1));
-    Curve(prev_begin, K - 1);
-    std::size_t current = 0;
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      const CompressedRotationMatrix &m = rotations[i];
-      for (const Vec *v = prev_begin; v != prev_end; v++) {
-        // TODO: avoid v2 copy.
-        Vec v2{};
-        for (std::size_t j = 0; j < N; j++) {
-          Int v2j = (*v)[m.order[j]] * (m.signs[j] ? 1 : -1);
-          v2[j] = v2j + (base_shape[i][j]) * (1 << (K - 1));
-        }
-        vs[current++] = v2;
+    return;
+  }
+
+  Vec *prev_end = vs + (1 << N * K);
+  Vec *prev_begin = prev_end - (1 << N * (K - 1));
+  Curve(prev_begin, K - 1);
+  std::size_t current = 0;
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    const CompressedPermutationMatrix &m = transformations[i];
+    for (const Vec *p = prev_begin; p != prev_end; p++) {
+      const Vec& v = *p;
+      Vec &v2 = vs[current++];
+      for (std::size_t j = 0; j < N; j++) {
+        v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
+                base_shape[i][j] * (1 << (K - 1));
       }
     }
   }
