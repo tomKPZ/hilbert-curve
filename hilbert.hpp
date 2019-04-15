@@ -17,7 +17,7 @@ public:
 
   static constexpr Vec IToV(std::size_t i, std::size_t K);
 
-  // static constexpr std::size_t VToI(const Vec& v, std::size_t K);
+  static constexpr std::size_t VToI(const Vec &v, std::size_t K);
 
   static constexpr Vec Offset(const Vec &v, std::size_t K);
 
@@ -44,7 +44,7 @@ private:
     return d_first;
   }
 
-  static constexpr std::array<std::size_t, (1 << N)> BaseShape() {
+  static constexpr std::array<std::size_t, 1 << N> BaseShape() {
     constexpr std::size_t TwoPowN = 1 << N;
     std::array<std::size_t, TwoPowN> ret{};
     if constexpr (N > 0) {
@@ -58,6 +58,15 @@ private:
           }
         }
       }
+    }
+    return ret;
+  }
+
+  static constexpr std::array<std::size_t, (1 << N)>
+  InvertPermutation(const std::array<std::size_t, (1 << N)> &arr) {
+    std::array<std::size_t, 1 << N> ret{};
+    for (std::size_t i = 0; i < 1 << N; i++) {
+      ret[arr[i]] = i;
     }
     return ret;
   }
@@ -120,8 +129,23 @@ private:
     return ret;
   }
 
+  static constexpr std::array<CompressedPermutationMatrix, (1 << N)>
+  InvertMatrices(const std::array<CompressedPermutationMatrix, (1 << N)> &ms) {
+    std::array<CompressedPermutationMatrix, (1 << N)> ret{};
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      for (std::size_t j = 0; j < N; j++) {
+        ret[i].order[ms[i].order[j]] = j;
+        ret[i].signs[ms[i].order[j]] = ms[i].signs[j];
+      }
+    }
+    return ret;
+  }
+
   static constexpr auto base_shape = BaseShape();
+  static constexpr auto base_shape_inverse = InvertPermutation(base_shape);
   static constexpr auto transformations = Transformations();
+  static constexpr auto transformations_inverse =
+      InvertMatrices(transformations);
 };
 
 // static
@@ -189,9 +213,9 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   std::size_t section = i / (1 << N * (K - 1));
   std::size_t section_i = i % (1 << N * (K - 1));
   Vec section_v = IToV(section_i, K - 1);
-  const CompressedPermutationMatrix &m = transformations[section];
 
   Vec v;
+  const CompressedPermutationMatrix &m = transformations[section];
   for (std::size_t j = 0; j < N; j++) {
     v[j] = section_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
            ((base_shape[section] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
@@ -200,9 +224,36 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
 }
 
 // static
-// template <std::size_t N, typename Int>
-// constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
-// }
+template <std::size_t N, typename Int>
+constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
+  if (K == 0) {
+    return 0;
+  }
+
+  std::size_t coords = 0;
+  Vec section_v{};
+  for (std::size_t i = 0; i < N; i++) {
+    if (v[i] > 0) {
+      coords |= 1 << i;
+    }
+    if (v[i] > 0) {
+      section_v[i] -= (1 << (K - 1));
+    } else {
+      section_v[i] += (1 << (K - 1));
+    }
+  }
+
+  std::size_t section = base_shape_inverse[coords];
+
+  Vec transformed{};
+  const CompressedPermutationMatrix &m = transformations_inverse[section];
+  for (std::size_t i = 0; i < N; i++) {
+    transformed[i] = section_v[m.order[i]] * (m.signs[i] ? 1 : -1);
+  }
+
+  std::size_t section_i = VToI(transformed, K - 1);
+  return section_i + section * (1 << (K - 1));
+}
 
 // static
 template <std::size_t N, typename Int>
