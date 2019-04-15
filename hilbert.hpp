@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <type_traits>
 
 template <std::size_t N, typename Int = int> class Hilbert {
 public:
@@ -15,7 +16,13 @@ public:
 
   static constexpr void Curve(VecN *vs, std::size_t K);
 
+  static constexpr VecN Offset(const VecN &v, std::size_t K);
+
+  static constexpr VecN Unoffset(const VecN &v, std::size_t K);
+
 private:
+  static_assert(std::is_signed_v<Int>);
+
   Hilbert() = delete;
 
   friend class Hilbert<N + 1, Int>;
@@ -46,7 +53,7 @@ private:
           VecN &new_vec = ret[i * TwoPowN / 2 + j];
           Vec<N - 1> &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
           Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
-          new_vec[N - 1] = i;
+          new_vec[N - 1] = i ? 1 : -1;
         }
       }
     }
@@ -151,14 +158,33 @@ constexpr void Hilbert<N, Int>::Curve(VecN *vs, std::size_t K) {
         // TODO: avoid v2 copy.
         VecN v2{};
         for (std::size_t j = 0; j < N; j++) {
-          std::size_t offset = (1 << (K - 1)) - 1;
-          Int v2j = 2 * (*v)[m.order[j]] - offset;
-          v2j = (m.signs[j] ? 1 : -1) * v2j;
-          v2j = (v2j + offset) / 2;
-          v2[j] = v2j + base_shape[i][j] * (1 << (K - 1));
+          Int v2j = (*v)[m.order[j]] * (m.signs[j] ? 1 : -1);
+          v2[j] = v2j + (base_shape[i][j]) * (1 << (K - 1));
         }
         vs[current++] = v2;
       }
     }
   }
+}
+
+// static
+template <std::size_t N, typename Int>
+constexpr typename Hilbert<N, Int>::VecN
+Hilbert<N, Int>::Offset(const VecN &v, std::size_t K) {
+  VecN ret{};
+  for (std::size_t i = 0; i < N; i++) {
+    ret[i] = (v[i] + (1 << K)) / 2;
+  }
+  return ret;
+}
+
+// static
+template <std::size_t N, typename Int>
+constexpr typename Hilbert<N, Int>::VecN
+Hilbert<N, Int>::Unoffset(const VecN &v, std::size_t K) {
+  VecN ret{};
+  for (std::size_t i = 0; i < N; i++) {
+    ret[i] = v[i] * 2 - (1 << K);
+  }
+  return ret;
 }
