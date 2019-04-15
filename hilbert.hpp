@@ -147,19 +147,27 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
     return;
   }
 
-  Vec *prev_end = vs + (1 << N * K);
-  Vec *prev_begin = prev_end - (1 << N * (K - 1));
-  Curve(prev_begin, K - 1);
-  std::size_t current = 0;
-  for (std::size_t i = 0; i < (1 << N); i++) {
+  Vec *prev_end = vs + (1 << N * (K - 1));
+  Curve(vs, K - 1);
+  for (std::size_t i = (1 << N) - 1; i > 0; i--) {
+    size_t current = i * (1 << N * (K - 1));
     const CompressedPermutationMatrix &m = transformations[i];
-    for (const Vec *p = prev_begin; p != prev_end; p++) {
-      const Vec v = *p;
+    for (const Vec *p = vs; p != prev_end; p++) {
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
-        v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
+        v2[j] = (*p)[m.order[j]] * (m.signs[j] ? 1 : -1) +
                 base_shape[i][j] * (1 << (K - 1));
       }
+    }
+  }
+  size_t current = 0;
+  const CompressedPermutationMatrix &m = transformations[0];
+  for (const Vec *p = vs; p != prev_end; p++) {
+    const Vec v = *p;
+    Vec &v2 = vs[current++];
+    for (std::size_t j = 0; j < N; j++) {
+      v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
+	base_shape[0][j] * (1 << (K - 1));
     }
   }
 }
