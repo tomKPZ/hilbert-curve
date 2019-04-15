@@ -237,9 +237,9 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
       coords |= 1 << i;
     }
     if (v[i] > 0) {
-      section_v[i] -= (1 << (K - 1));
+      section_v[i] = v[i] - (1 << (K - 1));
     } else {
-      section_v[i] += (1 << (K - 1));
+      section_v[i] = v[i] + (1 << (K - 1));
     }
   }
 
@@ -252,7 +252,7 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
   }
 
   std::size_t section_i = VToI(transformed, K - 1);
-  return section_i + section * (1 << (K - 1));
+  return section_i + section * (1 << N * (K - 1));
 }
 
 // static
