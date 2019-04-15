@@ -154,7 +154,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
   for (std::size_t i = 0; i < (1 << N); i++) {
     const CompressedPermutationMatrix &m = transformations[i];
     for (const Vec *p = prev_begin; p != prev_end; p++) {
-      const Vec& v = *p;
+      const Vec v = *p;
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
         v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
