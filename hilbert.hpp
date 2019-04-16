@@ -95,11 +95,11 @@ private:
     return d_first;
   }
 
-  static constexpr std::array<std::size_t, 1 << N> BaseShape() {
+  static constexpr std::array<std::size_t, 1 << N> IToVMap() {
     constexpr std::size_t TwoPowN = 1 << N;
     std::array<std::size_t, TwoPowN> ret{};
     if constexpr (N > 0) {
-      auto np = Hilbert<N - 1, Int>::BaseShape();
+      auto np = Hilbert<N - 1, Int>::IToVMap();
       for (std::size_t i : {0, 1}) {
         for (std::size_t j = 0; j < TwoPowN / 2; j++) {
           auto &new_vec = ret[i * TwoPowN / 2 + j];
@@ -113,8 +113,8 @@ private:
     return ret;
   }
 
-  static constexpr std::array<std::size_t, (1 << N)>
-  InvertPermutation(const std::array<std::size_t, (1 << N)> &arr) {
+  static constexpr std::array<std::size_t, (1 << N)> VToIMap() {
+    auto arr = IToVMap();
     std::array<std::size_t, 1 << N> ret{};
     for (std::size_t i = 0; i < 1 << N; i++) {
       ret[arr[i]] = i;
@@ -146,7 +146,7 @@ private:
   }
 
   static constexpr std::array<CompressedPermutationMatrix, (1 << N)>
-  Transformations() {
+  IToVTransforms() {
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
 
     constexpr auto transitions = Transitions();
@@ -181,7 +181,8 @@ private:
   }
 
   static constexpr std::array<CompressedPermutationMatrix, (1 << N)>
-  InvertMatrices(const std::array<CompressedPermutationMatrix, (1 << N)> &ms) {
+  VToITransforms() {
+    auto ms = IToVTransforms();
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
     for (std::size_t i = 0; i < (1 << N); i++) {
       for (std::size_t j = 0; j < N; j++) {
@@ -192,11 +193,10 @@ private:
     return ret;
   }
 
-  static constexpr auto base_shape = BaseShape();
-  static constexpr auto base_shape_inverse = InvertPermutation(base_shape);
-  static constexpr auto transformations = Transformations();
-  static constexpr auto transformations_inverse =
-      InvertMatrices(transformations);
+  static constexpr auto i_to_v_map = IToVMap();
+  static constexpr auto v_to_i_map = VToIMap();
+  static constexpr auto i_to_v_transforms = IToVTransforms();
+  static constexpr auto v_to_i_transforms = VToITransforms();
 };
 
 // static
@@ -231,24 +231,24 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
   Curve(vs, K - 1);
   size_t current = 1 << N * (K - 1);
   for (std::size_t i = 1; i < 1 << N; i++) {
-    const CompressedPermutationMatrix &m = transformations[i];
+    const CompressedPermutationMatrix &m = i_to_v_transforms[i];
     for (const Vec *p = vs; p != prev_end; p++) {
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
         v2[j] = (*p)[m.order[j]] * (m.signs[j] ? 1 : -1) +
-                ((base_shape[i] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+                ((i_to_v_map[i] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
       }
     }
   }
 
   current = 0;
-  const CompressedPermutationMatrix &m = transformations[0];
+  const CompressedPermutationMatrix &m = i_to_v_transforms[0];
   for (const Vec *p = vs; p != prev_end; p++) {
     const Vec v = *p;
     Vec &v2 = vs[current++];
     for (std::size_t j = 0; j < N; j++) {
       v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-              ((base_shape[0] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+              ((i_to_v_map[0] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
     }
   }
 }
@@ -266,10 +266,10 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   Vec orthant_v = IToV(orthant_i, K - 1);
 
   Vec v;
-  const CompressedPermutationMatrix &m = transformations[orthant];
+  const CompressedPermutationMatrix &m = i_to_v_transforms[orthant];
   for (std::size_t j = 0; j < N; j++) {
     v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-           ((base_shape[orthant] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+           ((i_to_v_map[orthant] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
   }
   return v;
 }
@@ -288,10 +288,10 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
     transformed[j] = v[j] + (v[j] > 0 ? -1 : 1) * (1 << (K - 1));
   }
 
-  std::size_t orthant = base_shape_inverse[coords];
+  std::size_t orthant = v_to_i_map[coords];
 
   Vec orthant_v{};
-  const CompressedPermutationMatrix &m = transformations_inverse[orthant];
+  const CompressedPermutationMatrix &m = v_to_i_transforms[orthant];
   for (std::size_t j = 0; j < N; j++) {
     orthant_v[j] = transformed[m.order[j]] * (m.signs[j] ? 1 : -1);
   }
