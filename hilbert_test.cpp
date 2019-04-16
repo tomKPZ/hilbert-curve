@@ -12,8 +12,8 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
     assert(Hilbert<N>::IToV(i, K) == buf[i]);
     assert(Hilbert<N>::VToI(buf[i], K) == i);
-    const auto v = Hilbert<N>::Offset(buf[i], K);
-    assert(Hilbert<N>::Unoffset(v, K) == buf[i]);
+    const auto v = Hilbert<N>::OffsetV(buf[i], K);
+    assert(Hilbert<N>::CenterV(v, K) == buf[i]);
     for (int x : v) {
       uint8_t bytes[2];
       if constexpr (Write) {

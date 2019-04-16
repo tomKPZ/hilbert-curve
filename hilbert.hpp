@@ -63,16 +63,16 @@ public:
   //     auto v2 = Hilbert<1>::Offset({+1}, 2);  // v1 is {2}.
   //     auto v3 = Hilbert<1>::Offset({+3}, 2);  // v1 is {3}.
 
-  static constexpr Vec Offset(const Vec &v, std::size_t K);
+  static constexpr Vec OffsetV(const Vec &center_v, std::size_t K);
 
   // The inverse operation of Offset() described above.  Example:
   //     // Center the points of the 2nd iteration of a 1D Hilbert
   //     // curve.
-  //     auto v0 = Hilbert<1>::Unoffset({0}, 2);  // v0 is {-3}.
-  //     auto v1 = Hilbert<1>::Unoffset({1}, 2);  // v1 is {-1}.
-  //     auto v2 = Hilbert<1>::Unoffset({2}, 2);  // v1 is {+1}.
-  //     auto v3 = Hilbert<1>::Unoffset({3}, 2);  // v1 is {+3}.
-  static constexpr Vec Unoffset(const Vec &v, std::size_t K);
+  //     auto v0 = Hilbert<1>::Center({0}, 2);  // v0 is {-3}.
+  //     auto v1 = Hilbert<1>::Center({1}, 2);  // v1 is {-1}.
+  //     auto v2 = Hilbert<1>::Center({2}, 2);  // v1 is {+1}.
+  //     auto v3 = Hilbert<1>::Center({3}, 2);  // v1 is {+3}.
+  static constexpr Vec CenterV(const Vec &offset_v, std::size_t K);
 
 private:
   static_assert(std::is_signed_v<Int>);
@@ -261,15 +261,15 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
     return {};
   }
 
-  std::size_t section = i / (1 << N * (K - 1));
-  std::size_t section_i = i % (1 << N * (K - 1));
-  Vec section_v = IToV(section_i, K - 1);
+  std::size_t orthant = i / (1 << N * (K - 1));
+  std::size_t orthant_i = i % (1 << N * (K - 1));
+  Vec orthant_v = IToV(orthant_i, K - 1);
 
   Vec v;
-  const CompressedPermutationMatrix &m = transformations[section];
+  const CompressedPermutationMatrix &m = transformations[orthant];
   for (std::size_t j = 0; j < N; j++) {
-    v[j] = section_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-           ((base_shape[section] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+    v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
+           ((base_shape[orthant] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
   }
   return v;
 }
@@ -282,48 +282,42 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
   }
 
   std::size_t coords = 0;
-  Vec section_v{};
-  for (std::size_t i = 0; i < N; i++) {
-    if (v[i] > 0) {
-      coords |= 1 << i;
-    }
-    if (v[i] > 0) {
-      section_v[i] = v[i] - (1 << (K - 1));
-    } else {
-      section_v[i] = v[i] + (1 << (K - 1));
-    }
-  }
-
-  std::size_t section = base_shape_inverse[coords];
-
   Vec transformed{};
-  const CompressedPermutationMatrix &m = transformations_inverse[section];
-  for (std::size_t i = 0; i < N; i++) {
-    transformed[i] = section_v[m.order[i]] * (m.signs[i] ? 1 : -1);
+  for (std::size_t j = 0; j < N; j++) {
+    coords |= (v[j] > 0) << j;
+    transformed[j] = v[j] + (v[j] > 0 ? -1 : 1) * (1 << (K - 1));
   }
 
-  std::size_t section_i = VToI(transformed, K - 1);
-  return section_i + section * (1 << N * (K - 1));
-}
+  std::size_t orthant = base_shape_inverse[coords];
 
-// static
-template <std::size_t N, typename Int>
-constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::Offset(const Vec &v,
-                                                                std::size_t K) {
-  Vec ret{};
-  for (std::size_t i = 0; i < N; i++) {
-    ret[i] = (v[i] + (1 << K)) / 2;
+  Vec orthant_v{};
+  const CompressedPermutationMatrix &m = transformations_inverse[orthant];
+  for (std::size_t j = 0; j < N; j++) {
+    orthant_v[j] = transformed[m.order[j]] * (m.signs[j] ? 1 : -1);
   }
-  return ret;
+
+  std::size_t orthant_i = VToI(orthant_v, K - 1);
+  return orthant_i + orthant * (1 << N * (K - 1));
 }
 
 // static
 template <std::size_t N, typename Int>
 constexpr typename Hilbert<N, Int>::Vec
-Hilbert<N, Int>::Unoffset(const Vec &v, std::size_t K) {
-  Vec ret{};
+Hilbert<N, Int>::OffsetV(const Vec &center_v, std::size_t K) {
+  Vec offset_v{};
   for (std::size_t i = 0; i < N; i++) {
-    ret[i] = v[i] * 2 - (1 << K) + 1;
+    offset_v[i] = (center_v[i] + (1 << K)) / 2;
   }
-  return ret;
+  return offset_v;
+}
+
+// static
+template <std::size_t N, typename Int>
+constexpr typename Hilbert<N, Int>::Vec
+Hilbert<N, Int>::CenterV(const Vec &offset_v, std::size_t K) {
+  Vec center_v{};
+  for (std::size_t i = 0; i < N; i++) {
+    center_v[i] = offset_v[i] * 2 - (1 << K) + 1;
+  }
+  return center_v;
 }
