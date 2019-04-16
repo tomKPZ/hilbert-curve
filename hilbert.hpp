@@ -42,13 +42,36 @@ public:
   // Returns the i'th vector of Curve(K).  Example:
   //     // Compute the 5th vector in the 3rd iteration of a 2D
   //     // Hilbert curve.
-  //     auto v = Hilbert<2>::IToV(5, 3);
+  //     auto v = Hilbert<2>::IToV(5, 3);  // v is {-7, -1}.
   static constexpr Vec IToV(std::size_t i, std::size_t K);
 
+  // Returns the index that v would have in Curve(K).  Example:
+  //     // Compute the index of the vector {-7, -1} in the 3rd
+  //     // iteration of a 2D Hilbert curve.
+  //     auto i = Hilbert<2>::VToI({-7, -1}, 3);  // i is 5.
   static constexpr std::size_t VToI(const Vec &v, std::size_t K);
+
+  // Curve(), IToV(), and VToI() all operate on hilbert curves
+  // centered at the origin with points separated a distance of 2.
+  // For example, the 2nd iteration of a 1D hilbert curve would have
+  // points at [{-3}, {-1}, {1}, {3}].  Sometimes this data is more
+  // useful based at 0 with a distance 1 between points.  Example:
+  //     // Offset the points of the 2nd iteration of a 1D Hilbert
+  //     // curve.
+  //     auto v0 = Hilbert<1>::Offset({-3}, 2);  // v0 is {0}.
+  //     auto v1 = Hilbert<1>::Offset({-1}, 2);  // v1 is {1}.
+  //     auto v2 = Hilbert<1>::Offset({+1}, 2);  // v1 is {2}.
+  //     auto v3 = Hilbert<1>::Offset({+3}, 2);  // v1 is {3}.
 
   static constexpr Vec Offset(const Vec &v, std::size_t K);
 
+  // The inverse operation of Offset() described above.  Example:
+  //     // Center the points of the 2nd iteration of a 1D Hilbert
+  //     // curve.
+  //     auto v0 = Hilbert<1>::Unoffset({0}, 2);  // v0 is {-3}.
+  //     auto v1 = Hilbert<1>::Unoffset({1}, 2);  // v1 is {-1}.
+  //     auto v2 = Hilbert<1>::Unoffset({2}, 2);  // v1 is {+1}.
+  //     auto v3 = Hilbert<1>::Unoffset({3}, 2);  // v1 is {+3}.
   static constexpr Vec Unoffset(const Vec &v, std::size_t K);
 
 private:
@@ -300,7 +323,7 @@ constexpr typename Hilbert<N, Int>::Vec
 Hilbert<N, Int>::Unoffset(const Vec &v, std::size_t K) {
   Vec ret{};
   for (std::size_t i = 0; i < N; i++) {
-    ret[i] = v[i] * 2 - (1 << K);
+    ret[i] = v[i] * 2 - (1 << K) + 1;
   }
   return ret;
 }
