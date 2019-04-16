@@ -95,7 +95,7 @@ private:
     return d_first;
   }
 
-  static constexpr std::array<std::size_t, 1 << N> IToVMap() {
+  static constexpr auto IToVMap() {
     constexpr std::size_t TwoPowN = 1 << N;
     std::array<std::size_t, TwoPowN> ret{};
     if constexpr (N > 0) {
@@ -113,7 +113,7 @@ private:
     return ret;
   }
 
-  static constexpr std::array<std::size_t, (1 << N)> VToIMap() {
+  static constexpr auto VToIMap() {
     auto arr = IToVMap();
     std::array<std::size_t, 1 << N> ret{};
     for (std::size_t i = 0; i < 1 << N; i++) {
@@ -122,7 +122,7 @@ private:
     return ret;
   }
 
-  static constexpr std::array<Vec, (1 << N) + 1> Transitions() {
+  static constexpr auto Transitions() {
     constexpr std::size_t TwoPowN = 1 << N;
     std::array<Vec, TwoPowN + 1> ret{};
     if constexpr (N > 0) {
@@ -145,8 +145,7 @@ private:
     return ret;
   }
 
-  static constexpr std::array<CompressedPermutationMatrix, (1 << N)>
-  IToVTransforms() {
+  static constexpr auto IToVTransforms() {
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
 
     constexpr auto transitions = Transitions();
@@ -180,8 +179,7 @@ private:
     return ret;
   }
 
-  static constexpr std::array<CompressedPermutationMatrix, (1 << N)>
-  VToITransforms() {
+  static constexpr auto VToITransforms() {
     auto ms = IToVTransforms();
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
     for (std::size_t i = 0; i < (1 << N); i++) {
