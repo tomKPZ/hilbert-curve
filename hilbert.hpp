@@ -148,7 +148,7 @@ private:
   static constexpr auto IToVTransforms() {
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
 
-    constexpr auto transitions = Transitions();
+    auto transitions = Transitions();
     for (std::size_t i = 0; i < (1 << N); i++) {
       std::size_t d = N;
       for (std::size_t j = 0; j < N; j++) {
@@ -229,7 +229,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
   Curve(vs, K - 1);
   size_t current = 1 << N * (K - 1);
   for (std::size_t i = 1; i < 1 << N; i++) {
-    const CompressedPermutationMatrix &m = i_to_v_transforms[i];
+    const auto &m = i_to_v_transforms[i];
     for (const Vec *p = vs; p != prev_end; p++) {
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
@@ -240,7 +240,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
   }
 
   current = 0;
-  const CompressedPermutationMatrix &m = i_to_v_transforms[0];
+  const auto &m = i_to_v_transforms[0];
   for (const Vec *p = vs; p != prev_end; p++) {
     const Vec v = *p;
     Vec &v2 = vs[current++];
@@ -264,7 +264,7 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   Vec orthant_v = IToV(orthant_i, K - 1);
 
   Vec v;
-  const CompressedPermutationMatrix &m = i_to_v_transforms[orthant];
+  const auto &m = i_to_v_transforms[orthant];
   for (std::size_t j = 0; j < N; j++) {
     v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
            ((i_to_v_map[orthant] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
@@ -289,7 +289,7 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
   std::size_t orthant = v_to_i_map[coords];
 
   Vec orthant_v{};
-  const CompressedPermutationMatrix &m = v_to_i_transforms[orthant];
+  const auto &m = v_to_i_transforms[orthant];
   for (std::size_t j = 0; j < N; j++) {
     orthant_v[j] = transformed[m.order[j]] * (m.signs[j] ? 1 : -1);
   }
