@@ -1109,9 +1109,87 @@ void TestComputeBaseShapeInverseIJ() {
   }
 }
 
+template <std::size_t N>
+struct CompressedPermutationMatrix {
+  std::array<std::size_t, N> order;
+  std::array<bool, N> signs;
+};
+
+template <std::size_t N>
+constexpr auto IToVTransforms() {
+  std::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
+
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    std::size_t d = N - 1;
+    if (i != 0 && i != (1 << N) - 1) {
+      std::size_t j = (i - 1) >> 1;
+      j = ~j & (j + 1);
+      while (j != 0) {
+	j >>= 1;
+	d--;
+      }
+    }
+
+    for (std::size_t j = 0; j < N; j++) {
+      ret[i].order[j] = d;
+      d = d == N - 1 ? 0 : d + 1;
+    }
+  }
+
+  for (std::size_t j = 0; j < N; j++) {
+    std::size_t c = j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1;
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      ret[i].signs[j] = c & (1 << (j + 1));
+      c++;
+    }
+  }
+  if constexpr (N > 0) {
+      ret[0].signs[0] = 1;
+    }
+
+  return ret;
+}
+
+template <std::size_t N>
+constexpr auto VToITransforms() {
+  auto i_to_v_transforms = IToVTransforms<N>();
+  std::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      ret[i].order[i_to_v_transforms[i].order[j]] = j;
+      ret[i].signs[i_to_v_transforms[i].order[j]] =
+	i_to_v_transforms[i].signs[j];
+    }
+  }
+  return ret;
+}
+
+void TestVToITransforms() {
+  constexpr std::size_t N = 5;
+  constexpr auto i2v = IToVTransforms<N>();
+  constexpr auto v2i = VToITransforms<N>();
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << i2v[i].order[j] << '\t';
+    }
+    std::cout << '\t';
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << v2i[i].order[j] << '\t';
+    }
+    std::cout << std::endl;
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << (i2v[i].signs[j] ? '+' : '-') << '\t';
+    }
+    std::cout << '\t';
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << (v2i[i].signs[j] ? '+' : '-') << '\t';
+    }
+    std::cout << std::endl;
+    std::cout << std::endl;
+  }
+}
+
 int main() {
-  TestShapeInverse();
-  std::cout << std::endl;
-  TestComputeBaseShapeInverseIJ();
+  TestVToITransforms();
   return 0;
 }
