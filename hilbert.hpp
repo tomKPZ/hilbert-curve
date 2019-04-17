@@ -173,9 +173,7 @@ constexpr void IToV(std::size_t i,
   std::size_t d = N - 1;
   if (orthant != 0 && orthant != (1 << N) - 1) {
     std::size_t j = (orthant - 1) >> 1;
-    j = ~j & (j + 1);
-    while (j != 0) {
-      j >>= 1;
+    for (std::size_t bits = ~j & (j + 1); bits != 0; bits >>= 1) {
       d--;
     }
   }
@@ -221,9 +219,7 @@ constexpr std::size_t VToI(Int* v,
   std::size_t d = 0;
   if (orthant != 0 && orthant != (1 << N) - 1) {
     std::size_t j = (orthant - 1) >> 1;
-    j = ~j & (j + 1);
-    while (j != 0) {
-      j >>= 1;
+    for (std::size_t bits = ~j & (j + 1); bits != 0; bits >>= 1) {
       d++;
     }
   }
