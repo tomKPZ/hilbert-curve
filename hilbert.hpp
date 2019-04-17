@@ -207,7 +207,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
         v2[j] = (*p)[m.order[j]] * (m.signs[j] ? 1 : -1) +
-                ((i_to_v_map[i] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+                (((i_to_v_map[i] & (1 << j)) ? 1 : -1) << (K - 1));
       }
     }
   }
@@ -219,7 +219,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
     Vec &v2 = vs[current++];
     for (std::size_t j = 0; j < N; j++) {
       v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-              ((i_to_v_map[0] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+              (((i_to_v_map[0] & (1 << j)) ? 1 : -1) << (K - 1));
     }
   }
 }
@@ -241,7 +241,7 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   std::size_t coords = i_to_v_map[orthant];
   for (std::size_t j = 0; j < N; j++) {
     v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-           ((coords & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+           (((coords & (1 << j)) ? 1 : -1) << (K - 1));
   }
   return v;
 }
@@ -257,7 +257,7 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
   Vec transformed{};
   for (std::size_t j = 0; j < N; j++) {
     coords |= (v[j] > 0) << j;
-    transformed[j] = v[j] + (v[j] > 0 ? -1 : 1) * (1 << (K - 1));
+    transformed[j] = v[j] + ((v[j] > 0 ? -1 : 1) << (K - 1));
   }
 
   std::size_t orthant = v_to_i_map[coords];
