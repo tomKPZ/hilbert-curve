@@ -116,19 +116,15 @@ private:
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
 
     for (std::size_t i = 0; i < (1 << N); i++) {
-      std::size_t d = N;
-      if (i == 0 || i == (1 << N) - 1) {
-        d = 0;
-      } else {
+      std::size_t d = N - 1;
+      if (i != 0 && i != (1 << N) - 1) {
         std::size_t j = (i - 1) >> 1;
         j = ~j & (j + 1);
-        d = 0;
         while (j != 0) {
           j >>= 1;
-          d++;
+          d--;
         }
       }
-      d = N - d - 1;
 
       if constexpr (N > 0) {
         for (std::size_t j = 0; j < N; j++) {
