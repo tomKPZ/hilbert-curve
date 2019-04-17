@@ -81,35 +81,8 @@ class Hilbert {
 
   Hilbert() = delete;
 
-  struct CompressedPermutationMatrix {
-    std::array<std::size_t, N> order;
-    std::array<bool, N> signs;
-  };
-
   static constexpr bool IToVMap(std::size_t orthant, std::size_t j) {
     return (orthant + (1 << j)) & (1 << (j + 1));
-  }
-
-  static constexpr auto IToVTransform(std::size_t i) {
-    CompressedPermutationMatrix ret{};
-
-    std::size_t d = N - 1;
-    if (i != 0 && i != (1 << N) - 1) {
-      std::size_t j = (i - 1) >> 1;
-      j = ~j & (j + 1);
-      while (j != 0) {
-        j >>= 1;
-        d--;
-      }
-    }
-
-    for (std::size_t j = 0; j < N; j++) {
-      ret.order[j] = d + j >= N ? d + j - N : d + j;
-      std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-      ret.signs[j] = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-    }
-
-    return ret;
   }
 };
 
@@ -146,14 +119,27 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
   Curve(prev_start, K - 1);
   size_t current = 0;
   for (std::size_t i = 0; i < (1 << N); i++) {
-    const auto m = IToVTransform(i);
     for (const Vec* p = prev_start; p != prev_end; p++) {
       // TODO: Avoid copy for orthants 0 to 2^N - 2.
       const Vec v = *p;
+
+      std::size_t d = N - 1;
+      if (i != 0 && i != (1 << N) - 1) {
+        std::size_t j = (i - 1) >> 1;
+        j = ~j & (j + 1);
+        while (j != 0) {
+          j >>= 1;
+          d--;
+        }
+      }
+
       Vec& v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
-        v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-                ((IToVMap(i, j) ? 1 : -1) << (K - 1));
+	std::size_t order = d + j >= N ? d + j - N : d + j;
+        std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
+        bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+        v2[j] =
+            v[order] * (sign ? 1 : -1) + ((IToVMap(i, j) ? 1 : -1) << (K - 1));
       }
     }
   }
