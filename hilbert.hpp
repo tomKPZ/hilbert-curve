@@ -116,7 +116,7 @@ constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
   Int* prev_start = prev_end - N * (1 << N * (K - 1));
   Curve(N, K - 1, prev_start, v);
   size_t current = 0;
-  for (std::size_t i = 0; i < (1 << N); i++) {
+  for (std::size_t i = 0; i < (1U << N); i++) {
     for (const Int* p = prev_start; p != prev_end; p += N) {
       // TODO: Avoid copy for orthants 0 to 2^N - 2.
       for (std::size_t j = 0; j < N; j++) {
@@ -124,7 +124,7 @@ constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
       }
 
       std::size_t d = N - 1;
-      if (i != 0 && i != (1 << N) - 1) {
+      if (i != 0 && i != (1U << N) - 1) {
         std::size_t j = (i - 1) >> 1;
         j = ~j & (j + 1);
         while (j != 0) {
