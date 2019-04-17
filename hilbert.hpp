@@ -123,14 +123,6 @@ class Hilbert {
     return ret;
   }
 
-  static constexpr auto IToVTransforms() {
-    std ::array<CompressedPermutationMatrix, (1 << N)> ret{};
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      ret[i] = IToVTransform(i);
-    }
-    return ret;
-  }
-
   static constexpr auto VToITransform(std::size_t i) {
     CompressedPermutationMatrix ret{};
 
@@ -151,7 +143,7 @@ class Hilbert {
     }
 
     for (std::size_t j = 0; j < N; j++) {
-      std::size_t s = j + ret.order[0];
+      std::size_t s = j + d;
       if (s >= N) {
         s -= N;
       }
@@ -166,17 +158,6 @@ class Hilbert {
 
     return ret;
   }
-
-  static constexpr auto VToITransforms() {
-    std ::array<CompressedPermutationMatrix, (1 << N)> ret{};
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      ret[i] = VToITransform(i);
-    }
-    return ret;
-  }
-
-  static constexpr auto i_to_v_transforms = IToVTransforms();
-  static constexpr auto v_to_i_transforms = VToITransforms();
 };
 
 // static
@@ -211,7 +192,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
   Curve(vs, K - 1);
   size_t current = 1 << N * (K - 1);
   for (std::size_t i = 1; i < 1 << N; i++) {
-    const auto& m = i_to_v_transforms[i];
+    const auto m = IToVTransform(i);
     for (const Vec* p = vs; p != prev_end; p++) {
       Vec& v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
@@ -222,7 +203,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
   }
 
   current = 0;
-  const auto& m = i_to_v_transforms[0];
+  const auto m = IToVTransform(0);
   for (const Vec* p = vs; p != prev_end; p++) {
     const Vec v = *p;
     Vec& v2 = vs[current++];
@@ -246,7 +227,7 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   Vec orthant_v = IToV(orthant_i, K - 1);
 
   Vec v;
-  const auto& m = i_to_v_transforms[orthant];
+  const auto m = IToVTransform(orthant);
   for (std::size_t j = 0; j < N; j++) {
     v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
            ((IToVMap(orthant, j) ? 1 : -1) << (K - 1));
@@ -271,7 +252,7 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
   }
 
   Vec orthant_v{};
-  const auto& m = v_to_i_transforms[orthant];
+  const auto m = VToITransform(orthant);
   for (std::size_t j = 0; j < N; j++) {
     orthant_v[j] = transformed[m.order[j]] * (m.signs[j] ? 1 : -1);
   }
