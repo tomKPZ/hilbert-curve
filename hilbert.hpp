@@ -232,8 +232,8 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
     return {};
   }
 
-  std::size_t orthant = i / (1 << N * (K - 1));
-  std::size_t orthant_i = i % (1 << N * (K - 1));
+  std::size_t orthant = i >> (N * (K - 1));
+  std::size_t orthant_i = i & ((1 << N * (K - 1)) - 1);
   Vec orthant_v = IToV(orthant_i, K - 1);
 
   Vec v;
@@ -278,7 +278,7 @@ constexpr typename Hilbert<N, Int>::Vec
 Hilbert<N, Int>::OffsetV(const Vec &center_v, std::size_t K) {
   Vec offset_v{};
   for (std::size_t i = 0; i < N; i++) {
-    offset_v[i] = (center_v[i] + (1 << K)) / 2;
+    offset_v[i] = (center_v[i] + (1 << K)) >> 1;
   }
   return offset_v;
 }
