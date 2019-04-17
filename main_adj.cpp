@@ -42,7 +42,8 @@ int error(int i1, int j1) {
   return err;
 }
 
-template <int depth> void solve(int current_error) {
+template <int depth>
+void solve(int current_error) {
   if (current_error >= solution_error)
     return;
 

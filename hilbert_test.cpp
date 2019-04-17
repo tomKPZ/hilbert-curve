@@ -3,7 +3,8 @@
 #include <cassert>
 #include <fstream>
 
-template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
+template <std::size_t N, std::size_t K, bool Write = false>
+void OpTestData() {
   std::string fname =
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
@@ -19,9 +20,9 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
       if constexpr (Write) {
         bytes[0] = (x & 0xff00) >> 8;
         bytes[1] = x & 0xff;
-        f.write(reinterpret_cast<const char *>(bytes), sizeof(bytes));
+        f.write(reinterpret_cast<const char*>(bytes), sizeof(bytes));
       } else {
-        f.read(reinterpret_cast<char *>(bytes), sizeof(bytes));
+        f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
         assert(f);
         assert(x == (bytes[0] << 8) + bytes[1]);
       }

@@ -10,14 +10,17 @@
 #include <sstream>
 #include <vector>
 
-template <std::size_t N> using Vector = std::array<int, N>;
-template <std::size_t N> using SquareMatrix = std::array<std::array<int, N>, N>;
+template <std::size_t N>
+using Vector = std::array<int, N>;
+template <std::size_t N>
+using SquareMatrix = std::array<std::array<int, N>, N>;
 
-template <std::size_t N> struct CompressedRotationMatrix {
+template <std::size_t N>
+struct CompressedRotationMatrix {
   std::array<std::size_t, N> order;
   std::array<bool, N> signs;
 
-  bool operator<(const CompressedRotationMatrix &other) const {
+  bool operator<(const CompressedRotationMatrix& other) const {
     if (order < other.order) {
       return true;
     }
@@ -27,26 +30,27 @@ template <std::size_t N> struct CompressedRotationMatrix {
     return signs < other.signs;
   }
 
-  bool operator==(const CompressedRotationMatrix &other) const {
+  bool operator==(const CompressedRotationMatrix& other) const {
     return order == other.order && signs == other.signs;
   }
 };
 
 template <class ForwardIt, class T>
-constexpr void Fill(ForwardIt first, ForwardIt last, const T &value) {
+constexpr void Fill(ForwardIt first, ForwardIt last, const T& value) {
   for (; first != last; ++first) {
     *first = value;
   }
 }
 
-template <std::size_t N> constexpr Vector<N> Ones() {
+template <std::size_t N>
+constexpr Vector<N> Ones() {
   Vector<N> ret{};
   Fill(std::begin(ret), std::end(ret), 1);
   return ret;
 }
 
 template <std::size_t N>
-constexpr Vector<N> operator*(const Vector<N> &v, int x) {
+constexpr Vector<N> operator*(const Vector<N>& v, int x) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = v[i] * x;
@@ -55,7 +59,7 @@ constexpr Vector<N> operator*(const Vector<N> &v, int x) {
 }
 
 template <std::size_t N>
-constexpr Vector<N> operator/(const Vector<N> &v, int x) {
+constexpr Vector<N> operator/(const Vector<N>& v, int x) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = v[i] / x;
@@ -64,7 +68,7 @@ constexpr Vector<N> operator/(const Vector<N> &v, int x) {
 }
 
 template <std::size_t N>
-constexpr Vector<N> operator+(const Vector<N> &v1, const Vector<N> &v2) {
+constexpr Vector<N> operator+(const Vector<N>& v1, const Vector<N>& v2) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = v1[i] + v2[i];
@@ -73,7 +77,7 @@ constexpr Vector<N> operator+(const Vector<N> &v1, const Vector<N> &v2) {
 }
 
 template <std::size_t N>
-constexpr Vector<N> operator-(const Vector<N> &v1, const Vector<N> &v2) {
+constexpr Vector<N> operator-(const Vector<N>& v1, const Vector<N>& v2) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = v1[i] - v2[i];
@@ -81,7 +85,8 @@ constexpr Vector<N> operator-(const Vector<N> &v1, const Vector<N> &v2) {
   return ret;
 }
 
-template <std::size_t N> constexpr Vector<N> operator-(const Vector<N> &v1) {
+template <std::size_t N>
+constexpr Vector<N> operator-(const Vector<N>& v1) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = -v1[i];
@@ -90,8 +95,8 @@ template <std::size_t N> constexpr Vector<N> operator-(const Vector<N> &v1) {
 }
 
 template <std::size_t N>
-constexpr SquareMatrix<N> operator*(const SquareMatrix<N> &l,
-                                    const SquareMatrix<N> &r) {
+constexpr SquareMatrix<N> operator*(const SquareMatrix<N>& l,
+                                    const SquareMatrix<N>& r) {
   SquareMatrix<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     for (std::size_t j = 0; j < N; j++) {
@@ -106,7 +111,7 @@ constexpr SquareMatrix<N> operator*(const SquareMatrix<N> &l,
 }
 
 template <std::size_t N>
-constexpr Vector<N> operator*(const SquareMatrix<N> &m, const Vector<N> &v) {
+constexpr Vector<N> operator*(const SquareMatrix<N>& m, const Vector<N>& v) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     int dot = 0;
@@ -119,8 +124,8 @@ constexpr Vector<N> operator*(const SquareMatrix<N> &m, const Vector<N> &v) {
 }
 
 template <std::size_t N>
-constexpr Vector<N> operator*(const CompressedRotationMatrix<N> &m,
-                              const Vector<N> &v) {
+constexpr Vector<N> operator*(const CompressedRotationMatrix<N>& m,
+                              const Vector<N>& v) {
   Vector<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i] = (m.signs[i] ? 1 : -1) * v[m.order[i]];
@@ -136,7 +141,8 @@ constexpr OutputIt Copy(InputIt first, InputIt last, OutputIt d_first) {
   return d_first;
 }
 
-template <std::size_t N> constexpr std::array<Vector<N>, (1 << N)> BaseShape() {
+template <std::size_t N>
+constexpr std::array<Vector<N>, (1 << N)> BaseShape() {
   if constexpr (N == 0) {
     return {{}};
   } else {
@@ -145,8 +151,8 @@ template <std::size_t N> constexpr std::array<Vector<N>, (1 << N)> BaseShape() {
     std::array<Vector<N - 1>, TwoPowN / 2> np = BaseShape<N - 1>();
     for (int i : {0, 1}) {
       for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-        Vector<N> &new_vec = ret[i * TwoPowN / 2 + j];
-        Vector<N - 1> &old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
+        Vector<N>& new_vec = ret[i * TwoPowN / 2 + j];
+        Vector<N - 1>& old_vec = np[i ? TwoPowN / 2 - 1 - j : j];
         Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
         new_vec[N - 1] = i;
       }
@@ -164,16 +170,16 @@ constexpr std::array<Vector<N>, (1 << N) + 1> Transitions() {
     std::array<Vector<N>, TwoPowN + 1> ret{};
     std::array<Vector<N - 1>, TwoPowN / 2 + 1> np = Transitions<N - 1>();
     for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-      Vector<N> &new_vec = ret[j];
-      Vector<N - 1> &old_vec = np[j];
+      Vector<N>& new_vec = ret[j];
+      Vector<N - 1>& old_vec = np[j];
       Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
       new_vec[N - 1] = 0;
     }
     ret[TwoPowN / 2] = ret[TwoPowN / 2 - 1];
     ret[TwoPowN / 2][N - 1] = 1;
     for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-      Vector<N> &new_vec = ret[TwoPowN / 2 + 1 + j];
-      Vector<N - 1> &old_vec = np[TwoPowN / 2 - 1 - j];
+      Vector<N>& new_vec = ret[TwoPowN / 2 + 1 + j];
+      Vector<N - 1>& old_vec = np[TwoPowN / 2 - 1 - j];
       Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
       new_vec[N - 1] = 2;
     }
@@ -181,7 +187,8 @@ constexpr std::array<Vector<N>, (1 << N) + 1> Transitions() {
   }
 }
 
-template <std::size_t N> constexpr SquareMatrix<N> Identity() {
+template <std::size_t N>
+constexpr SquareMatrix<N> Identity() {
   SquareMatrix<N> ret{};
   for (std::size_t i = 0; i < N; i++) {
     ret[i][i] = 1;
@@ -245,8 +252,8 @@ BaseRotationMatrices() {
   std::array<SquareMatrix<N>, RetSize> ret{};
   constexpr auto combinations = Choose<N, 2>();
   for (std::size_t i = 0; i < RetSize; i++) {
-    const auto &combination = combinations[i];
-    auto &matrix = ret[i];
+    const auto& combination = combinations[i];
+    auto& matrix = ret[i];
     matrix = Identity<N>();
     matrix[combination[0]][combination[0]] = 0;
     matrix[combination[1]][combination[1]] = 0;
@@ -256,7 +263,8 @@ BaseRotationMatrices() {
   return ret;
 }
 
-template <std::size_t B, std::size_t E> constexpr std::size_t Pow() {
+template <std::size_t B, std::size_t E>
+constexpr std::size_t Pow() {
   std::size_t ret = 1;
   for (std::size_t i = 0; i < E; i++) {
     ret *= B;
@@ -265,7 +273,7 @@ template <std::size_t B, std::size_t E> constexpr std::size_t Pow() {
 }
 
 template <std::size_t N>
-constexpr SquareMatrix<N> Pow(const SquareMatrix<N> &matrix,
+constexpr SquareMatrix<N> Pow(const SquareMatrix<N>& matrix,
                               std::size_t exponent) {
   SquareMatrix<N> ret = Identity<N>();
   for (std::size_t i = 0; i < exponent; i++) {
@@ -281,7 +289,7 @@ constexpr std::array<std::array<std::size_t, N>, Pow<M, N>()> Multipliers() {
     auto solutions = Multipliers<N - 1, M>();
     std::size_t filled = 0;
     for (std::size_t i = 0; i < M; i++) {
-      for (const auto &solution : solutions) {
+      for (const auto& solution : solutions) {
         Copy(std::begin(solution), std::end(solution), std::begin(ret[filled]));
         ret[filled++][N - 1] = i;
       }
@@ -291,8 +299,8 @@ constexpr std::array<std::array<std::size_t, N>, Pow<M, N>()> Multipliers() {
 }
 
 template <std::size_t N>
-constexpr CompressedRotationMatrix<N>
-CompressRotationMatrix(const SquareMatrix<N> &matrix) {
+constexpr CompressedRotationMatrix<N> CompressRotationMatrix(
+    const SquareMatrix<N>& matrix) {
   CompressedRotationMatrix<N> ret;
 
   for (std::size_t i = 0; i < N; i++) {
@@ -308,8 +316,8 @@ CompressRotationMatrix(const SquareMatrix<N> &matrix) {
 }
 
 template <std::size_t N>
-constexpr SquareMatrix<N>
-UncompressRotationMatrix(const CompressedRotationMatrix<N> &matrix) {
+constexpr SquareMatrix<N> UncompressRotationMatrix(
+    const CompressedRotationMatrix<N>& matrix) {
   SquareMatrix<N> ret{};
 
   for (std::size_t i = 0; i < N; i++) {
@@ -319,7 +327,8 @@ UncompressRotationMatrix(const CompressedRotationMatrix<N> &matrix) {
   return ret;
 }
 
-template <typename T> constexpr void Swap(T &a, T &b) {
+template <typename T>
+constexpr void Swap(T& a, T& b) {
   T temp = a;
   a = b;
   b = temp;
@@ -328,7 +337,7 @@ template <typename T> constexpr void Swap(T &a, T &b) {
 // O(N^2).  Could make this O(N) if this is generalized to
 // non-adjacent swaps.
 template <std::size_t N>
-constexpr std::size_t AdjacentSwaps(const std::array<std::size_t, N> &arr) {
+constexpr std::size_t AdjacentSwaps(const std::array<std::size_t, N>& arr) {
   std::array<std::size_t, N> arr_{arr};
   std::size_t swaps = 0;
   for (std::size_t i = 0; i < N - 1; i++) {
@@ -343,7 +352,7 @@ constexpr std::size_t AdjacentSwaps(const std::array<std::size_t, N> &arr) {
 }
 
 template <std::size_t N>
-constexpr bool Checksum(const CompressedRotationMatrix<N> &matrix) {
+constexpr bool Checksum(const CompressedRotationMatrix<N>& matrix) {
   bool checksum = (N % 2) ^ (AdjacentSwaps(matrix.order) % 2);
   for (std::size_t i = 0; i < N; i++) {
     checksum ^= matrix.signs[i];
@@ -351,7 +360,8 @@ constexpr bool Checksum(const CompressedRotationMatrix<N> &matrix) {
   return checksum;
 }
 
-template <typename BidirIt> constexpr bool Next(BidirIt first, BidirIt last) {
+template <typename BidirIt>
+constexpr bool Next(BidirIt first, BidirIt last) {
   if (first == last) {
     return false;
   }
@@ -400,7 +410,8 @@ constexpr void IterSwap(ForwardIt1 a, ForwardIt2 b) {
   Swap(*a, *b);
 }
 
-template <class BidirIt> constexpr void Reverse(BidirIt first, BidirIt last) {
+template <class BidirIt>
+constexpr void Reverse(BidirIt first, BidirIt last) {
   while ((first != last) && (first != --last)) {
     IterSwap(first++, last);
   }
@@ -490,22 +501,25 @@ RotationAndMirrorMatrices() {
   return ret;
 }
 
-template <std::size_t N> void PrintNumberInBinary(std::size_t x) {
+template <std::size_t N>
+void PrintNumberInBinary(std::size_t x) {
   for (std::size_t i = (1 << (N - 1)); i != 0; i >>= 1) {
     std::cout << ((i & x) ? 1 : 0) << '\t';
   }
   std::cout << std::endl;
 }
 
-template <std::size_t N> void PrintVector(const Vector<N> &vector) {
+template <std::size_t N>
+void PrintVector(const Vector<N>& vector) {
   for (int x : vector) {
     std::cout << x << '\t';
   }
   std::cout << std::endl;
 }
 
-template <std::size_t N> void PrintMatrix(const SquareMatrix<N> &matrix) {
-  for (const auto &row : matrix) {
+template <std::size_t N>
+void PrintMatrix(const SquareMatrix<N>& matrix) {
+  for (const auto& row : matrix) {
     for (int x : row) {
       std::cout << x << '\t';
     }
@@ -514,7 +528,7 @@ template <std::size_t N> void PrintMatrix(const SquareMatrix<N> &matrix) {
 }
 
 template <std::size_t N>
-void PrintCompressedRotationMatrix(const CompressedRotationMatrix<N> &matrix) {
+void PrintCompressedRotationMatrix(const CompressedRotationMatrix<N>& matrix) {
   for (std::size_t i : matrix.order) {
     std::cout << i << '\t';
   }
@@ -529,7 +543,7 @@ void TestShapeAndTransitions() {
   constexpr std::size_t N = 5;
   std::cout << "BaseShape" << std::endl;
   constexpr auto vecs = BaseShape<N>();
-  for (const auto &vec : vecs) {
+  for (const auto& vec : vecs) {
     for (int i : vec) {
       std::cout << i << '\t';
     }
@@ -537,7 +551,7 @@ void TestShapeAndTransitions() {
   }
   std::cout << "Transitions (absolute)" << std::endl;
   constexpr auto transitions = Transitions<N>();
-  for (const auto &vec : transitions) {
+  for (const auto& vec : transitions) {
     for (int i : vec) {
       std::cout << i << '\t';
     }
@@ -554,7 +568,7 @@ void TestShapeAndTransitions() {
 
 void TestChoose() {
   constexpr auto solutions = Choose<4, 2>();
-  for (const auto &solution : solutions) {
+  for (const auto& solution : solutions) {
     for (std::size_t x : solution) {
       std::cout << x << '\t';
     }
@@ -564,7 +578,7 @@ void TestChoose() {
 
 void TestBaseRotationMatrices() {
   constexpr auto matrices = BaseRotationMatrices<4>();
-  for (const auto &matrix : matrices) {
+  for (const auto& matrix : matrices) {
     PrintMatrix(matrix);
     std::cout << std::endl;
   }
@@ -572,7 +586,7 @@ void TestBaseRotationMatrices() {
 
 void TestMultipliers() {
   constexpr auto multipliers = Multipliers<4, 3>();
-  for (const auto &mults : multipliers) {
+  for (const auto& mults : multipliers) {
     for (std::size_t x : mults) {
       std::cout << x << '\t';
     }
@@ -592,13 +606,13 @@ void TestNext() {
 
 void TestCompressedRotationMatrices() {
   auto matrices = CompressedRotationMatrices<4>();
-  for (const auto &matrix : matrices) {
+  for (const auto& matrix : matrices) {
     PrintCompressedRotationMatrix(matrix);
   }
 }
 
 void TestSlowCompressedRotationMatrices() {
-  for (const auto &matrix : SlowCompressedRotationMatrices<4>()) {
+  for (const auto& matrix : SlowCompressedRotationMatrices<4>()) {
     PrintCompressedRotationMatrix(matrix);
   }
 }
@@ -623,7 +637,7 @@ void VerifyMatrixVectorMultiply() {
   for (std::size_t i = 0; i < N; i++) {
     v[i] = (i + 1) * (i + 1);
   }
-  for (const auto &m : CompressedRotationMatrices<N>()) {
+  for (const auto& m : CompressedRotationMatrices<N>()) {
     assert(m * v == UncompressRotationMatrix(m) * v);
   }
 }
@@ -642,7 +656,7 @@ void BruteForceRotations() {
     Vector<N> v2p = (transitions[i + 1] - vecs[i]) * 2 - Ones<N>();
     PrintNumberInBinary<N>(i);
     PrintVector(vecs[i]);
-    for (const auto &rotation : rotations) {
+    for (const auto& rotation : rotations) {
       if (rotation * v1p == v1 && rotation * v2p == v2) {
         PrintCompressedRotationMatrix(rotation);
       }
@@ -651,7 +665,7 @@ void BruteForceRotations() {
   }
 }
 
-std::vector<std::vector<int>> Parse(const std::string &filename) {
+std::vector<std::vector<int>> Parse(const std::string& filename) {
   std::vector<std::vector<int>> ret;
   std::ifstream file(filename);
   std::string line;
@@ -668,7 +682,8 @@ std::vector<std::vector<int>> Parse(const std::string &filename) {
   return ret;
 }
 
-template <std::size_t N> void VerifyBaseShapes() {
+template <std::size_t N>
+void VerifyBaseShapes() {
   if constexpr (N == 0) {
     return;
   } else {
@@ -690,10 +705,10 @@ BruteForceRotationsFromDataFiles() {
   auto base_shape_offset = base_shape;
   std::transform(std::begin(base_shape_offset), std::end(base_shape_offset),
                  std::begin(base_shape_offset),
-                 [](Vector<N> &v) { return v * 2 - Ones<N>(); });
+                 [](Vector<N>& v) { return v * 2 - Ones<N>(); });
   auto vs = Parse("hb/hb_2_" + std::to_string(N) + ".txt");
   if constexpr (N == 2) {
-    for (auto &v : vs) {
+    for (auto& v : vs) {
       std::reverse(v.begin(), v.end());
     }
   }
@@ -701,13 +716,13 @@ BruteForceRotationsFromDataFiles() {
   for (std::size_t i = 0; i < std::size(base_shape); i++) {
     std::array<Vector<N>, base_shape.size()> rotated;
     for (std::size_t j = 0; j < std::size(base_shape); j++) {
-      const auto &v = vs[std::size(base_shape) * i + j];
+      const auto& v = vs[std::size(base_shape) * i + j];
       for (std::size_t k = 0; k < N; k++) {
         rotated[j][k] = (v[k] - 2 * base_shape[i][k]) * 2 - 1;
       }
     }
 
-    for (const auto &rotation : rotations) {
+    for (const auto& rotation : rotations) {
       bool satisfies = true;
       for (std::size_t j = 0; j < std::size(base_shape); j++) {
         if (rotation * base_shape_offset[j] != rotated[j]) {
@@ -760,7 +775,7 @@ constexpr std::array<CompressedRotationMatrix<N>, (1 << N)> Rotations() {
 
 void TestRotations() {
   constexpr auto rotations = Rotations<4>();
-  for (const auto &rotation : rotations) {
+  for (const auto& rotation : rotations) {
     PrintCompressedRotationMatrix(rotation);
   }
 }
@@ -768,11 +783,11 @@ void TestRotations() {
 void VerifyRotations() {
   constexpr std::size_t N = 2;
   assert(BruteForceRotationsFromDataFiles<N>() == Rotations<N>());
-  for (const auto &rotation : BruteForceRotationsFromDataFiles<N>()) {
+  for (const auto& rotation : BruteForceRotationsFromDataFiles<N>()) {
     PrintCompressedRotationMatrix(rotation);
   }
   std::cout << std::endl;
-  for (const auto &rotation : Rotations<N>()) {
+  for (const auto& rotation : Rotations<N>()) {
     PrintCompressedRotationMatrix(rotation);
   }
 }
@@ -794,7 +809,7 @@ constexpr std::array<Vector<N>, Pow(1 << N, K)> Hilbert() {
     auto prev = Hilbert<N, K - 1>();
     std::size_t current = 0;
     for (std::size_t i = 0; i < std::size(base_shape); i++) {
-      for (const auto &v : prev) {
+      for (const auto& v : prev) {
         constexpr Vector<N> offset = Ones<N>() * ((1 << (K - 1)) - 1);
         auto v2 = v * 2 - offset;
         v2 = rotations[i] * v2;
@@ -808,17 +823,18 @@ constexpr std::array<Vector<N>, Pow(1 << N, K)> Hilbert() {
 
 void TestHilbert() {
   constexpr auto hilbert = Hilbert<0, 0>();
-  for (const auto &v : hilbert) {
+  for (const auto& v : hilbert) {
     PrintVector(v);
   }
 }
 
-template <std::size_t N, std::size_t K> void VerifyHilbert() {
+template <std::size_t N, std::size_t K>
+void VerifyHilbert() {
   constexpr auto hilbert = Hilbert<N, K>();
   auto vs =
       Parse("hb/hb_" + std::to_string(K) + "_" + std::to_string(N) + ".txt");
   if constexpr (N == 2) {
-    for (auto &v : vs) {
+    for (auto& v : vs) {
       std::reverse(v.begin(), v.end());
     }
   }
@@ -868,19 +884,21 @@ void VerifyHilbert() {
   // VerifyHilbert<9, 1>();
 }
 
-template <std::size_t N> struct HilbertConstants {
+template <std::size_t N>
+struct HilbertConstants {
   constexpr static auto base_shape = BaseShape<N>();
   constexpr static auto rotations = Rotations<N>();
 };
 
-template <std::size_t N, std::size_t K> std::vector<Vector<N>> HilbertVector() {
+template <std::size_t N, std::size_t K>
+std::vector<Vector<N>> HilbertVector() {
   std::vector<Vector<N>> ret;
   if constexpr (K == 0) {
     ret.push_back(Vector<N>{});
   } else {
     auto prev = HilbertVector<N, K - 1>();
     for (std::size_t i = 0; i < (1 << N); i++) {
-      for (const auto &v : prev) {
+      for (const auto& v : prev) {
         constexpr Vector<N> offset = Ones<N>() * ((1 << (K - 1)) - 1);
         auto v2 = v * 2 - offset;
         v2 = HilbertConstants<N>::rotations[i] * v2;
@@ -892,13 +910,14 @@ template <std::size_t N, std::size_t K> std::vector<Vector<N>> HilbertVector() {
   return ret;
 }
 
-template <std::size_t N, std::size_t K> void VerifyHilbertVector() {
+template <std::size_t N, std::size_t K>
+void VerifyHilbertVector() {
   std::cout << "Verifying " << N << "," << K << std::endl;
   auto hilbert = HilbertVector<N, K>();
   auto vs =
       Parse("hb/hb_" + std::to_string(K) + "_" + std::to_string(N) + ".txt");
   if constexpr (N == 2) {
-    for (auto &v : vs) {
+    for (auto& v : vs) {
       std::reverse(v.begin(), v.end());
     }
   }
@@ -964,7 +983,8 @@ void VerifyHilbertVector() {
   // VerifyHilbertVector<11, 2>();
 }
 
-template <std::size_t N, std::size_t K> void PrintSizesForDim() {
+template <std::size_t N, std::size_t K>
+void PrintSizesForDim() {
   std::size_t size = sizeof(Hilbert<N, K>());
   if (size > 1 && size < (1 << 20)) {
     std::cout << N << ' ' << K << ' ' << size << std::endl;
@@ -974,7 +994,8 @@ template <std::size_t N, std::size_t K> void PrintSizesForDim() {
   }
 }
 
-template <std::size_t N, std::size_t K> void PrintSizes() {
+template <std::size_t N, std::size_t K>
+void PrintSizes() {
   PrintSizesForDim<N, K>();
   if constexpr (N > 1) {
     PrintSizes<N - 1, K>();
@@ -1037,7 +1058,7 @@ void TestShape() {
   constexpr std::size_t N = 5;
   std::cout << "BaseShape" << std::endl;
   constexpr auto vecs = BaseShape<N>();
-  for (const auto &vec : vecs) {
+  for (const auto& vec : vecs) {
     for (int i : vec) {
       std::cout << i << '\t';
     }
@@ -1059,7 +1080,8 @@ void TestComputeBaseShapeIJ() {
   }
 }
 
-template <std::size_t N> constexpr auto IToVMap() {
+template <std::size_t N>
+constexpr auto IToVMap() {
   constexpr std::size_t TwoPowN = 1 << N;
   std::array<std::size_t, TwoPowN> ret{};
   for (std::size_t i = 0; i < TwoPowN; i++) {
@@ -1073,7 +1095,8 @@ template <std::size_t N> constexpr auto IToVMap() {
   return ret;
 }
 
-template <std::size_t N> constexpr auto VToIMap() {
+template <std::size_t N>
+constexpr auto VToIMap() {
   auto i_to_v_map = IToVMap<N>();
   std::array<std::size_t, 1 << N> ret{};
   for (std::size_t i = 0; i < 1 << N; i++) {
@@ -1085,7 +1108,7 @@ template <std::size_t N> constexpr auto VToIMap() {
 void TestShapeInverse() {
   constexpr std::size_t N = 4;
   constexpr auto vecs = VToIMap<N>();
-  for (const auto &vec : vecs) {
+  for (const auto& vec : vecs) {
     auto bs = std::bitset<N>(vec);
     for (std::size_t i = 0; i < N; i++) {
       std::cout << bs[i] << '\t';
@@ -1109,12 +1132,14 @@ void TestComputeBaseShapeInverseIJ() {
   }
 }
 
-template <std::size_t N> struct CompressedPermutationMatrix {
+template <std::size_t N>
+struct CompressedPermutationMatrix {
   std::array<std::size_t, N> order;
   std::array<bool, N> signs;
 };
 
-template <std::size_t N> constexpr auto IToVTransforms() {
+template <std::size_t N>
+constexpr auto IToVTransforms() {
   std::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
 
   for (std::size_t i = 0; i < (1 << N); i++) {
@@ -1148,7 +1173,8 @@ template <std::size_t N> constexpr auto IToVTransforms() {
   return ret;
 }
 
-template <std::size_t N> constexpr auto VToITransforms() {
+template <std::size_t N>
+constexpr auto VToITransforms() {
   auto i_to_v_transforms = IToVTransforms<N>();
   std::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
   for (std::size_t i = 0; i < (1 << N); i++) {
