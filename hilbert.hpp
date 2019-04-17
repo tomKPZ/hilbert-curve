@@ -103,22 +103,25 @@ std::unique_ptr<typename Hilbert<N, Int>::Vec[]> Hilbert<N, Int>::Curve(
   return ret;
 }
 
-// static
-template <std::size_t N, typename Int>
-constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
+template <typename Int>
+constexpr void Curve(Int* vs, Int* v, std::size_t K, std::size_t N) {
   if (K == 0) {
-    vs[0] = Vec{};
+    for (std::size_t j = 0; j < N; j++) {
+      vs[j] = 0;
+    }
     return;
   }
 
-  Vec* prev_end = vs + (1 << N * K);
-  Vec* prev_start = prev_end - (1 << N * (K - 1));
-  Curve(prev_start, K - 1);
+  Int* prev_end = vs + N * (1 << N * K);
+  Int* prev_start = prev_end - N * (1 << N * (K - 1));
+  Curve(prev_start, v, K - 1, N);
   size_t current = 0;
   for (std::size_t i = 0; i < (1 << N); i++) {
-    for (const Vec* p = prev_start; p != prev_end; p++) {
+    for (const Int* p = prev_start; p != prev_end; p += N) {
       // TODO: Avoid copy for orthants 0 to 2^N - 2.
-      const Vec v = *p;
+      for (std::size_t j = 0; j < N; j++) {
+        v[j] = p[j];
+      }
 
       std::size_t d = N - 1;
       if (i != 0 && i != (1 << N) - 1) {
@@ -130,7 +133,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
         }
       }
 
-      Vec& v2 = vs[current++];
+      Int* v2 = vs + N * current++;
       for (std::size_t j = 0; j < N; j++) {
         std::size_t order = d + j >= N ? d + j - N : d + j;
         std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
@@ -141,6 +144,13 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
       }
     }
   }
+}
+
+// static
+template <std::size_t N, typename Int>
+constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
+  Vec v{};
+  ::Curve<Int>(vs[0].data(), v.data(), K, N);
 }
 
 template <typename Int>
