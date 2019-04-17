@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HILBERT_HPP
+#define HILBERT_HPP
 
 #include <array>
 #include <cstdint>
@@ -80,10 +81,6 @@ class Hilbert {
   static_assert(std::is_signed_v<Int>);
 
   Hilbert() = delete;
-
-  static constexpr bool IToVMap(std::size_t orthant, std::size_t j) {
-    return (orthant + (1 << j)) & (1 << (j + 1));
-  }
 };
 
 // static
@@ -138,8 +135,9 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
 	std::size_t order = d + j >= N ? d + j - N : d + j;
         std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
         bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-        v2[j] =
-            v[order] * (sign ? 1 : -1) + ((IToVMap(i, j) ? 1 : -1) << (K - 1));
+	std::size_t coord = (i + (1 << j)) & (1 << (j + 1));
+	std::size_t offset = (coord ? 1 : -1) * (1 << (K - 1));
+        v2[j] = v[order] * (sign ? 1 : -1) + offset;
       }
     }
   }
@@ -172,8 +170,9 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
     std::size_t order = d + j >= N ? d + j - N : d + j;
     std::size_t c = orthant + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
     bool sign = orthant == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-    v[j] = orthant_v[order] * (sign ? 1 : -1) +
-           ((IToVMap(orthant, j) ? 1 : -1) << (K - 1));
+    std::size_t coord = (orthant + (1 << j)) & (1 << (j + 1));
+    std::size_t offset = (coord ? 1 : -1) * (1 << (K - 1));
+    v[j] = orthant_v[order] * (sign ? 1 : -1) + offset;
   }
   return v;
 }
@@ -241,3 +240,5 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::CenterV(
   }
   return center_v;
 }
+
+#endif  // HILBERT_HPP
