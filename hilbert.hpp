@@ -143,17 +143,22 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
   }
 }
 
-// static
-template <std::size_t N, typename Int>
-constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
-                                                              std::size_t K) {
+template <typename Int>
+constexpr void IToV(std::size_t i,
+                    Int* v,
+                    Int* orthant_v,
+                    std::size_t K,
+                    std::size_t N) {
   if (K == 0) {
-    return {};
+    for (std::size_t j = 0; j < N; j++) {
+      v[i] = 0;
+    }
+    return;
   }
 
   std::size_t orthant = i >> (N * (K - 1));
   std::size_t orthant_i = i & ((1 << N * (K - 1)) - 1);
-  Vec orthant_v = IToV(orthant_i, K - 1);
+  IToV<Int>(orthant_i, orthant_v, v, K - 1, N);
 
   std::size_t d = N - 1;
   if (orthant != 0 && orthant != (1 << N) - 1) {
@@ -165,7 +170,6 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
     }
   }
 
-  Vec v;
   for (std::size_t j = 0; j < N; j++) {
     std::size_t order = d + j >= N ? d + j - N : d + j;
     std::size_t c = orthant + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
@@ -174,6 +178,15 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
     std::size_t offset = (coord ? 1 : -1) * (1 << (K - 1));
     v[j] = orthant_v[order] * (sign ? 1 : -1) + offset;
   }
+}
+
+// static
+template <std::size_t N, typename Int>
+constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
+                                                              std::size_t K) {
+  Vec v{};
+  Vec orthant_v{};
+  ::IToV<Int>(i, v.data(), orthant_v.data(), K, N);
   return v;
 }
 
