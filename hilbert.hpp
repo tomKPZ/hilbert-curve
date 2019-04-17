@@ -141,28 +141,20 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
     return;
   }
 
-  Vec* prev_end = vs + (1 << N * (K - 1));
-  Curve(vs, K - 1);
-  size_t current = 1 << N * (K - 1);
-  for (std::size_t i = 1; i < 1 << N; i++) {
+  Vec* prev_end = vs + (1 << N * K);
+  Vec* prev_start = prev_end - (1 << N * (K - 1));
+  Curve(prev_start, K - 1);
+  size_t current = 0;
+  for (std::size_t i = 0; i < (1 << N); i++) {
     const auto m = IToVTransform(i);
-    for (const Vec* p = vs; p != prev_end; p++) {
+    for (const Vec* p = prev_start; p != prev_end; p++) {
+      // TODO: Avoid copy for orthants 0 to 2^N - 2.
+      const Vec v = *p;
       Vec& v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
-        v2[j] = (*p)[m.order[j]] * (m.signs[j] ? 1 : -1) +
+        v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
                 ((IToVMap(i, j) ? 1 : -1) << (K - 1));
       }
-    }
-  }
-
-  current = 0;
-  const auto m = IToVTransform(0);
-  for (const Vec* p = vs; p != prev_end; p++) {
-    const Vec v = *p;
-    Vec& v2 = vs[current++];
-    for (std::size_t j = 0; j < N; j++) {
-      v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-              ((IToVMap(0, j) ? 1 : -1) << (K - 1));
     }
   }
 }
