@@ -1109,14 +1109,12 @@ void TestComputeBaseShapeInverseIJ() {
   }
 }
 
-template <std::size_t N>
-struct CompressedPermutationMatrix {
+template <std::size_t N> struct CompressedPermutationMatrix {
   std::array<std::size_t, N> order;
   std::array<bool, N> signs;
 };
 
-template <std::size_t N>
-constexpr auto IToVTransforms() {
+template <std::size_t N> constexpr auto IToVTransforms() {
   std::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
 
   for (std::size_t i = 0; i < (1 << N); i++) {
@@ -1125,8 +1123,8 @@ constexpr auto IToVTransforms() {
       std::size_t j = (i - 1) >> 1;
       j = ~j & (j + 1);
       while (j != 0) {
-	j >>= 1;
-	d--;
+        j >>= 1;
+        d--;
       }
     }
 
@@ -1144,21 +1142,20 @@ constexpr auto IToVTransforms() {
     }
   }
   if constexpr (N > 0) {
-      ret[0].signs[0] = 1;
-    }
+    ret[0].signs[0] = 1;
+  }
 
   return ret;
 }
 
-template <std::size_t N>
-constexpr auto VToITransforms() {
+template <std::size_t N> constexpr auto VToITransforms() {
   auto i_to_v_transforms = IToVTransforms<N>();
   std::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
   for (std::size_t i = 0; i < (1 << N); i++) {
     for (std::size_t j = 0; j < N; j++) {
       ret[i].order[i_to_v_transforms[i].order[j]] = j;
       ret[i].signs[i_to_v_transforms[i].order[j]] =
-	i_to_v_transforms[i].signs[j];
+          i_to_v_transforms[i].signs[j];
     }
   }
   return ret;

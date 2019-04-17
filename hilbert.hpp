@@ -86,17 +86,8 @@ private:
     std::array<bool, N> signs;
   };
 
-  static constexpr auto IToVMap() {
-    std::array<std::size_t, 1 << N> ret{};
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      std::size_t r = 0;
-      for (std::size_t j = 0; j < N; j++) {
-        bool bit = (i + (1 << j)) & (1 << (j + 1));
-        r |= bit << j;
-      }
-      ret[i] = r;
-    }
-    return ret;
+  static constexpr auto IToVMap(std::size_t i, std::size_t j) {
+    return (i + (1 << j)) & (1 << (j + 1));
   }
 
   static constexpr auto VToIMap() {
@@ -164,7 +155,6 @@ private:
     return ret;
   }
 
-  static constexpr auto i_to_v_map = IToVMap();
   static constexpr auto v_to_i_map = VToIMap();
   static constexpr auto i_to_v_transforms = IToVTransforms();
   static constexpr auto v_to_i_transforms = VToITransforms();
@@ -207,7 +197,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
       Vec &v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
         v2[j] = (*p)[m.order[j]] * (m.signs[j] ? 1 : -1) +
-                (((i_to_v_map[i] & (1 << j)) ? 1 : -1) << (K - 1));
+                ((IToVMap(i, j) ? 1 : -1) << (K - 1));
       }
     }
   }
@@ -219,7 +209,7 @@ constexpr void Hilbert<N, Int>::Curve(Vec *vs, std::size_t K) {
     Vec &v2 = vs[current++];
     for (std::size_t j = 0; j < N; j++) {
       v2[j] = v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-              (((i_to_v_map[0] & (1 << j)) ? 1 : -1) << (K - 1));
+              ((IToVMap(0, j) ? 1 : -1) << (K - 1));
     }
   }
 }
@@ -238,10 +228,9 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
 
   Vec v;
   const auto &m = i_to_v_transforms[orthant];
-  std::size_t coords = i_to_v_map[orthant];
   for (std::size_t j = 0; j < N; j++) {
     v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-           (((coords & (1 << j)) ? 1 : -1) << (K - 1));
+           ((IToVMap(orthant, j) ? 1 : -1) << (K - 1));
   }
   return v;
 }
