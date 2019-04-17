@@ -86,15 +86,6 @@ private:
     std::array<bool, N> signs;
   };
 
-  template <class InputIt, class OutputIt>
-  static constexpr OutputIt Copy(InputIt first, InputIt last,
-                                 OutputIt d_first) {
-    while (first != last) {
-      *d_first++ = *first++;
-    }
-    return d_first;
-  }
-
   static constexpr auto IToVMap() {
     constexpr std::size_t TwoPowN = 1 << N;
     std::array<std::size_t, TwoPowN> ret{};
@@ -114,33 +105,9 @@ private:
   }
 
   static constexpr auto VToIMap() {
-    auto arr = IToVMap();
     std::array<std::size_t, 1 << N> ret{};
     for (std::size_t i = 0; i < 1 << N; i++) {
-      ret[arr[i]] = i;
-    }
-    return ret;
-  }
-
-  static constexpr auto Transitions() {
-    constexpr std::size_t TwoPowN = 1 << N;
-    std::array<Vec, TwoPowN + 1> ret{};
-    if constexpr (N > 0) {
-      auto np = Hilbert<N - 1, Int>::Transitions();
-      for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-        Vec &new_vec = ret[j];
-        auto &old_vec = np[j];
-        Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
-        new_vec[N - 1] = 0;
-      }
-      ret[TwoPowN / 2] = ret[TwoPowN / 2 - 1];
-      ret[TwoPowN / 2][N - 1] = 1;
-      for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-        Vec &new_vec = ret[TwoPowN / 2 + 1 + j];
-        auto &old_vec = np[TwoPowN / 2 - 1 - j];
-        Copy(std::begin(old_vec), std::end(old_vec), std::begin(new_vec));
-        new_vec[N - 1] = 2;
-      }
+      ret[i_to_v_map[i]] = i;
     }
     return ret;
   }
@@ -148,15 +115,21 @@ private:
   static constexpr auto IToVTransforms() {
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
 
-    auto transitions = Transitions();
     for (std::size_t i = 0; i < (1 << N); i++) {
       std::size_t d = N;
-      for (std::size_t j = 0; j < N; j++) {
-        if (transitions[i + 1][j] - transitions[i][j] != 0) {
-          d = N - j - 1;
-          break;
+      if (i == 0 || i == (1 << N) - 1) {
+        d = 0;
+      } else {
+        std::size_t j = (i - 1) >> 1;
+        j = ~j & (j + 1);
+        d = 0;
+        while (j != 0) {
+          j >>= 1;
+          d++;
         }
       }
+      d = N - d - 1;
+
       if constexpr (N > 0) {
         for (std::size_t j = 0; j < N; j++) {
           ret[i].order[j] = d;
@@ -180,12 +153,12 @@ private:
   }
 
   static constexpr auto VToITransforms() {
-    auto ms = IToVTransforms();
     std::array<CompressedPermutationMatrix, (1 << N)> ret{};
     for (std::size_t i = 0; i < (1 << N); i++) {
       for (std::size_t j = 0; j < N; j++) {
-        ret[i].order[ms[i].order[j]] = j;
-        ret[i].signs[ms[i].order[j]] = ms[i].signs[j];
+        ret[i].order[i_to_v_transforms[i].order[j]] = j;
+        ret[i].signs[i_to_v_transforms[i].order[j]] =
+            i_to_v_transforms[i].signs[j];
       }
     }
     return ret;

@@ -525,7 +525,7 @@ void PrintCompressedRotationMatrix(const CompressedRotationMatrix<N> &matrix) {
 }
 
 void TestShapeAndTransitions() {
-  constexpr std::size_t N = 3;
+  constexpr std::size_t N = 5;
   std::cout << "BaseShape" << std::endl;
   constexpr auto vecs = BaseShape<N>();
   for (const auto &vec : vecs) {
@@ -980,9 +980,64 @@ template <std::size_t N, std::size_t K> void PrintSizes() {
   }
 }
 
+bool ComputeTransition(std::size_t i, std::size_t j, std::size_t N) {
+  return j == 0
+             ? i == 0 || i == (1 << N) - 1
+             : ((i + (1 << j) - 1) & ((1 << (j + 1)) - 1)) > (1 << (j + 1)) - 3;
+}
+
+void TestComputeTransition() {
+  constexpr int N = 5;
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << ComputeTransition(i, j, N) << '\t';
+    }
+    std::cout << std::endl;
+  }
+}
+
+std::size_t ComputeTransitionIndexBak(std::size_t i, std::size_t N) {
+  if (i == 0 || i == (1 << N) - 1) {
+    return 0;
+  }
+  i -= 1;
+  i /= 2;
+  i = ~i & (i + 1);
+  std::size_t ret = 0;
+  while (i) {
+    i >>= 1;
+    ret++;
+  }
+  return ret;
+}
+
+std::size_t ComputeTransitionIndex(std::size_t i, std::size_t N) {
+  if (i == 0 || i == (1 << N) - 1) {
+    return 0;
+  }
+  i = (i - 1) >> 1;
+  i = ~i & (i + 1);
+  std::size_t ret = 0;
+  while (i != 0) {
+    i >>= 1;
+    ret++;
+  }
+  return ret;
+}
+
+void TestComputeTransitionIndex() {
+  constexpr int N = 5;
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    std::cout << ComputeTransitionIndex(i, N) << std::endl;
+  }
+}
+
 int main() {
-  PrintSizes<10, 10>();
-  PrintSizes<3, 15>();
-  PrintSizes<20, 2>();
+  TestShapeAndTransitions();
+  std::cout << std::endl;
+  TestComputeTransition();
+  std::cout << std::endl;
+  ;
+  TestComputeTransitionIndex();
   return 0;
 }
