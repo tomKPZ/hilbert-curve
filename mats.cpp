@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cassert>
 #include <cstdint>
 #include <fstream>
@@ -1058,9 +1059,59 @@ void TestComputeBaseShapeIJ() {
   }
 }
 
+template <std::size_t N> constexpr auto IToVMap() {
+  constexpr std::size_t TwoPowN = 1 << N;
+  std::array<std::size_t, TwoPowN> ret{};
+  for (std::size_t i = 0; i < TwoPowN; i++) {
+    std::size_t r = 0;
+    for (std::size_t j = 0; j < N; j++) {
+      bool bit = (i + (1 << j)) & (1 << (j + 1));
+      r |= bit << j;
+    }
+    ret[i] = r;
+  }
+  return ret;
+}
+
+template <std::size_t N> constexpr auto VToIMap() {
+  auto i_to_v_map = IToVMap<N>();
+  std::array<std::size_t, 1 << N> ret{};
+  for (std::size_t i = 0; i < 1 << N; i++) {
+    ret[i_to_v_map[i]] = i;
+  }
+  return ret;
+}
+
+void TestShapeInverse() {
+  constexpr std::size_t N = 4;
+  constexpr auto vecs = VToIMap<N>();
+  for (const auto &vec : vecs) {
+    auto bs = std::bitset<N>(vec);
+    for (std::size_t i = 0; i < N; i++) {
+      std::cout << bs[i] << '\t';
+    }
+    std::cout << std::endl;
+  }
+}
+
+bool ComputeBaseShapeInverseIJ(std::size_t i, std::size_t j) {
+  std::bitset<8 * sizeof(std::size_t)> bs = i >> j;
+  return bs.count() % 2;
+}
+
+void TestComputeBaseShapeInverseIJ() {
+  constexpr std::size_t N = 4;
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << ComputeBaseShapeInverseIJ(i, j) << '\t';
+    }
+    std::cout << std::endl;
+  }
+}
+
 int main() {
-  TestShape();
+  TestShapeInverse();
   std::cout << std::endl;
-  TestComputeBaseShapeIJ();
+  TestComputeBaseShapeInverseIJ();
   return 0;
 }

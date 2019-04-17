@@ -87,9 +87,8 @@ private:
   };
 
   static constexpr auto IToVMap() {
-    constexpr std::size_t TwoPowN = 1 << N;
-    std::array<std::size_t, TwoPowN> ret{};
-    for (std::size_t i = 0; i < TwoPowN; i++) {
+    std::array<std::size_t, 1 << N> ret{};
+    for (std::size_t i = 0; i < (1 << N); i++) {
       std::size_t r = 0;
       for (std::size_t j = 0; j < N; j++) {
         bool bit = (i + (1 << j)) & (1 << (j + 1));
@@ -102,8 +101,19 @@ private:
 
   static constexpr auto VToIMap() {
     std::array<std::size_t, 1 << N> ret{};
-    for (std::size_t i = 0; i < 1 << N; i++) {
-      ret[i_to_v_map[i]] = i;
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      std::size_t r = 0;
+      for (std::size_t j = 0; j < N; j++) {
+        std::size_t popcount = 0;
+        std::size_t bits = i >> j;
+        while (bits) {
+          popcount++;
+          bits &= (bits - 1);
+        }
+        bool bit = popcount & 1;
+        r |= bit << j;
+      }
+      ret[i] = r;
     }
     return ret;
   }
@@ -122,11 +132,9 @@ private:
         }
       }
 
-      if constexpr (N > 0) {
-        for (std::size_t j = 0; j < N; j++) {
-          ret[i].order[j] = d;
-          d = (d + 1) % N;
-        }
+      for (std::size_t j = 0; j < N; j++) {
+        ret[i].order[j] = d;
+        d = d == N - 1 ? 0 : d + 1;
       }
     }
 
@@ -230,9 +238,10 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
 
   Vec v;
   const auto &m = i_to_v_transforms[orthant];
+  std::size_t coords = i_to_v_map[orthant];
   for (std::size_t j = 0; j < N; j++) {
     v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
-           ((i_to_v_map[orthant] & (1 << j)) ? 1 : -1) * (1 << (K - 1));
+           ((coords & (1 << j)) ? 1 : -1) * (1 << (K - 1));
   }
   return v;
 }
