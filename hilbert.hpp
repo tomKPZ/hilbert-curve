@@ -171,10 +171,22 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   std::size_t orthant_i = i & ((1 << N * (K - 1)) - 1);
   Vec orthant_v = IToV(orthant_i, K - 1);
 
+  std::size_t d = N - 1;
+  if (orthant != 0 && orthant != (1 << N) - 1) {
+    std::size_t j = (orthant - 1) >> 1;
+    j = ~j & (j + 1);
+    while (j != 0) {
+      j >>= 1;
+      d--;
+    }
+  }
+
   Vec v;
-  const auto m = IToVTransform(orthant);
   for (std::size_t j = 0; j < N; j++) {
-    v[j] = orthant_v[m.order[j]] * (m.signs[j] ? 1 : -1) +
+    std::size_t order = d + j >= N ? d + j - N : d + j;
+    std::size_t c = orthant + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
+    bool sign = orthant == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+    v[j] = orthant_v[order] * (sign ? 1 : -1) +
            ((IToVMap(orthant, j) ? 1 : -1) << (K - 1));
   }
   return v;
@@ -196,8 +208,6 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
     transformed[j] = v[j] + ((v[j] > 0 ? -1 : 1) << (K - 1));
   }
 
-  Vec orthant_v{};
-
   std::size_t d = 0;
   if (orthant != 0 && orthant != (1 << N) - 1) {
     std::size_t j = (orthant - 1) >> 1;
@@ -209,9 +219,11 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
   }
   d = d == N - 1 ? 0 : d + 1;
 
+  Vec orthant_v{};
   for (std::size_t j = 0; j < N; j++) {
     std::size_t order = d + j >= N ? d + j - N : d + j;
-    std::size_t c = orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
+    std::size_t c =
+        orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
     bool sign = orthant == 0 && j == N - 1 ? 1 : c & (1 << (order + 1));
     orthant_v[j] = transformed[order] * (sign ? 1 : -1);
   }
