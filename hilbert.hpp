@@ -40,19 +40,19 @@ class Hilbert {
   //     Hilbert<2>::Vec curve[1 << (2*3)];
   //     Hilbert<2>::Curve(curve, 3);
   //     for (const auto& v : curve) { ... }
-  static constexpr void Curve(Vec* vs, std::size_t K);
+  static constexpr void Curve(std::size_t K, Vec* vs);
 
   // Returns the i'th vector of Curve(K).  Example:
   //     // Compute the 5th vector in the 3rd iteration of a 2D
   //     // Hilbert curve.
-  //     auto v = Hilbert<2>::IToV(5, 3);  // v is {-7, -1}.
-  static constexpr Vec IToV(std::size_t i, std::size_t K);
+  //     auto v = Hilbert<2>::IToV(3, 5);  // v is {-7, -1}.
+  static constexpr Vec IToV(std::size_t K, std::size_t i);
 
   // Returns the index that v would have in Curve(K).  Example:
   //     // Compute the index of the vector {-7, -1} in the 3rd
   //     // iteration of a 2D Hilbert curve.
-  //     auto i = Hilbert<2>::VToI({-7, -1}, 3);  // i is 5.
-  static constexpr std::size_t VToI(const Vec& v, std::size_t K);
+  //     auto i = Hilbert<2>::VToI(3, {-7, -1});  // i is 5.
+  static constexpr std::size_t VToI(std::size_t K, const Vec& v);
 
   // Curve(), IToV(), and VToI() all operate on hilbert curves
   // centered at the origin with points separated a distance of 2.
@@ -61,21 +61,21 @@ class Hilbert {
   // useful based at 0 with a distance 1 between points.  Example:
   //     // Offset the points of the 2nd iteration of a 1D Hilbert
   //     // curve.
-  //     auto v0 = Hilbert<1>::Offset({-3}, 2);  // v0 is {0}.
-  //     auto v1 = Hilbert<1>::Offset({-1}, 2);  // v1 is {1}.
-  //     auto v2 = Hilbert<1>::Offset({+1}, 2);  // v1 is {2}.
-  //     auto v3 = Hilbert<1>::Offset({+3}, 2);  // v1 is {3}.
+  //     auto v0 = Hilbert<1>::Offset(2, {-3});  // v0 is {0}.
+  //     auto v1 = Hilbert<1>::Offset(2, {-1});  // v1 is {1}.
+  //     auto v2 = Hilbert<1>::Offset(2, {+1});  // v1 is {2}.
+  //     auto v3 = Hilbert<1>::Offset(2, {+3});  // v1 is {3}.
 
-  static constexpr Vec OffsetV(const Vec& center_v, std::size_t K);
+  static constexpr Vec OffsetV(std::size_t K, const Vec& center_v);
 
   // The inverse operation of Offset() described above.  Example:
   //     // Center the points of the 2nd iteration of a 1D Hilbert
   //     // curve.
-  //     auto v0 = Hilbert<1>::Center({0}, 2);  // v0 is {-3}.
-  //     auto v1 = Hilbert<1>::Center({1}, 2);  // v1 is {-1}.
-  //     auto v2 = Hilbert<1>::Center({2}, 2);  // v1 is {+1}.
-  //     auto v3 = Hilbert<1>::Center({3}, 2);  // v1 is {+3}.
-  static constexpr Vec CenterV(const Vec& offset_v, std::size_t K);
+  //     auto v0 = Hilbert<1>::Center(2, {0});  // v0 is {-3}.
+  //     auto v1 = Hilbert<1>::Center(2, {1});  // v1 is {-1}.
+  //     auto v2 = Hilbert<1>::Center(2, {2});  // v1 is {+1}.
+  //     auto v3 = Hilbert<1>::Center(2, {3});  // v1 is {+3}.
+  static constexpr Vec CenterV(std::size_t K, const Vec& offset_v);
 
  private:
   static_assert(std::is_signed_v<Int>);
@@ -89,7 +89,7 @@ template <std::size_t K>
 constexpr std::array<typename Hilbert<N, Int>::Vec, 1 << N * K>
 Hilbert<N, Int>::Curve() {
   std::array<Vec, 1 << N * K> ret{};
-  Curve(&ret[0], K);
+  Curve(K, &ret[0]);
   return ret;
 }
 
@@ -99,7 +99,7 @@ std::unique_ptr<typename Hilbert<N, Int>::Vec[]> Hilbert<N, Int>::Curve(
     std::size_t K) {
   std::unique_ptr<Hilbert<N, Int>::Vec[]> ret(
       new Hilbert<N, Int>::Vec[1 << (N * K)]);
-  Curve(ret.get(), K);
+  Curve(K, ret.get());
   return ret;
 }
 
@@ -148,7 +148,7 @@ constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
 
 // static
 template <std::size_t N, typename Int>
-constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
+constexpr void Hilbert<N, Int>::Curve(std::size_t K, Vec* vs) {
   Vec v{};
   ::Curve<Int>(N, K, vs[0].data(), v.data());
 }
@@ -190,8 +190,8 @@ constexpr void IToV(std::size_t N,
 
 // static
 template <std::size_t N, typename Int>
-constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
-                                                              std::size_t K) {
+constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t K,
+                                                              std::size_t i) {
   Vec v{};
   Vec orthant_v{};
   ::IToV<Int>(N, K, i, v.data(), orthant_v.data());
@@ -239,7 +239,7 @@ constexpr std::size_t VToI(std::size_t N,
 
 // static
 template <std::size_t N, typename Int>
-constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
+constexpr std::size_t Hilbert<N, Int>::VToI(std::size_t K, const Vec& v) {
   Vec vec = v;
   Vec transformed{};
   Vec orthant_v{};
@@ -249,8 +249,8 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
 // static
 template <std::size_t N, typename Int>
 constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::OffsetV(
-    const Vec& center_v,
-    std::size_t K) {
+    std::size_t K,
+    const Vec& center_v) {
   Vec offset_v{};
   for (std::size_t i = 0; i < N; i++) {
     offset_v[i] = (center_v[i] + (1 << K)) >> 1;
@@ -261,8 +261,8 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::OffsetV(
 // static
 template <std::size_t N, typename Int>
 constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::CenterV(
-    const Vec& offset_v,
-    std::size_t K) {
+    std::size_t K,
+    const Vec& offset_v) {
   Vec center_v{};
   for (std::size_t i = 0; i < N; i++) {
     center_v[i] = offset_v[i] * 2 - (1 << K) + 1;
