@@ -104,7 +104,7 @@ std::unique_ptr<typename Hilbert<N, Int>::Vec[]> Hilbert<N, Int>::Curve(
 }
 
 template <typename Int>
-constexpr void Curve(Int* vs, Int* v, std::size_t K, std::size_t N) {
+constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
   if (K == 0) {
     for (std::size_t j = 0; j < N; j++) {
       vs[j] = 0;
@@ -114,7 +114,7 @@ constexpr void Curve(Int* vs, Int* v, std::size_t K, std::size_t N) {
 
   Int* prev_end = vs + N * (1 << N * K);
   Int* prev_start = prev_end - N * (1 << N * (K - 1));
-  Curve(prev_start, v, K - 1, N);
+  Curve(N, K - 1, prev_start, v);
   size_t current = 0;
   for (std::size_t i = 0; i < (1 << N); i++) {
     for (const Int* p = prev_start; p != prev_end; p += N) {
@@ -150,15 +150,15 @@ constexpr void Curve(Int* vs, Int* v, std::size_t K, std::size_t N) {
 template <std::size_t N, typename Int>
 constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
   Vec v{};
-  ::Curve<Int>(vs[0].data(), v.data(), K, N);
+  ::Curve<Int>(N, K, vs[0].data(), v.data());
 }
 
 template <typename Int>
-constexpr void IToV(std::size_t i,
-                    Int* v,
-                    Int* orthant_v,
+constexpr void IToV(std::size_t N,
                     std::size_t K,
-                    std::size_t N) {
+                    std::size_t i,
+                    Int* v,
+                    Int* orthant_v) {
   if (K == 0) {
     for (std::size_t j = 0; j < N; j++) {
       v[i] = 0;
@@ -168,7 +168,7 @@ constexpr void IToV(std::size_t i,
 
   std::size_t orthant = i >> (N * (K - 1));
   std::size_t orthant_i = i & ((1 << N * (K - 1)) - 1);
-  IToV<Int>(orthant_i, orthant_v, v, K - 1, N);
+  IToV<Int>(N, K - 1, orthant_i, orthant_v, v);
 
   std::size_t d = N - 1;
   if (orthant != 0 && orthant != (1 << N) - 1) {
@@ -194,16 +194,16 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
                                                               std::size_t K) {
   Vec v{};
   Vec orthant_v{};
-  ::IToV<Int>(i, v.data(), orthant_v.data(), K, N);
+  ::IToV<Int>(N, K, i, v.data(), orthant_v.data());
   return v;
 }
 
 template <typename Int>
-constexpr std::size_t VToI(Int* v,
-                           Int* transformed,
-                           Int* orthant_v,
+constexpr std::size_t VToI(std::size_t N,
                            std::size_t K,
-                           std::size_t N) {
+                           Int* v,
+                           Int* transformed,
+                           Int* orthant_v) {
   if (K == 0) {
     return 0;
   }
@@ -234,16 +234,16 @@ constexpr std::size_t VToI(Int* v,
   }
 
   std::size_t offset = orthant * (1 << N * (K - 1));
-  return offset + VToI<Int>(orthant_v, transformed, v, K - 1, N);
+  return offset + VToI<Int>(N, K - 1, orthant_v, transformed, v);
 }
 
 // static
 template <std::size_t N, typename Int>
 constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
-  Vec v2 = v;
+  Vec vec = v;
   Vec transformed{};
   Vec orthant_v{};
-  return ::VToI<Int>(v2.data(), transformed.data(), orthant_v.data(), K, N);
+  return ::VToI<Int>(N, K, vec.data(), transformed.data(), orthant_v.data());
 }
 
 // static
