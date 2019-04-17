@@ -90,37 +90,42 @@ private:
     return (orthant + (1 << j)) & (1 << (j + 1));
   }
 
-  static constexpr auto IToVTransforms() {
-    std::array<CompressedPermutationMatrix, (1 << N)> ret{};
+  static constexpr auto IToVTransform(std::size_t i) {
+    CompressedPermutationMatrix ret{};
 
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      std::size_t d = N - 1;
-      if (i != 0 && i != (1 << N) - 1) {
-        std::size_t j = (i - 1) >> 1;
-        j = ~j & (j + 1);
-        while (j != 0) {
-          j >>= 1;
-          d--;
-        }
-      }
-
-      for (std::size_t j = 0; j < N; j++) {
-        ret[i].order[j] = d;
-        d = d == N - 1 ? 0 : d + 1;
+    std::size_t d = N - 1;
+    if (i != 0 && i != (1 << N) - 1) {
+      std::size_t j = (i - 1) >> 1;
+      j = ~j & (j + 1);
+      while (j != 0) {
+        j >>= 1;
+        d--;
       }
     }
 
     for (std::size_t j = 0; j < N; j++) {
-      std::size_t c = j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1;
-      for (std::size_t i = 0; i < (1 << N); i++) {
-        ret[i].signs[j] = c & (1 << (j + 1));
-        c++;
-      }
-    }
-    if constexpr (N > 0) {
-      ret[0].signs[0] = 1;
+      ret.order[j] = d;
+      d = d == N - 1 ? 0 : d + 1;
     }
 
+    for (std::size_t j = 0; j < N; j++) {
+      std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
+      ret.signs[j] = c & (1 << (j + 1));
+    }
+    if constexpr (N > 0) {
+      if (i == 0) {
+        ret.signs[0] = 1;
+      }
+    }
+
+    return ret;
+  }
+
+  static constexpr auto IToVTransforms() {
+    std::array<CompressedPermutationMatrix, (1 << N)> ret{};
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      ret[i] = IToVTransform(i);
+    }
     return ret;
   }
 
