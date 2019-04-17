@@ -111,30 +111,6 @@ class Hilbert {
 
     return ret;
   }
-
-  static constexpr auto VToITransform(std::size_t i) {
-    CompressedPermutationMatrix ret{};
-
-    std::size_t d = 0;
-    if (i != 0 && i != (1 << N) - 1) {
-      std::size_t j = (i - 1) >> 1;
-      j = ~j & (j + 1);
-      while (j != 0) {
-        j >>= 1;
-        d++;
-      }
-    }
-    d = d == N - 1 ? 0 : d + 1;
-
-    for (std::size_t j = 0; j < N; j++) {
-      std::size_t s = d + j >= N ? d + j - N : d + j;
-      ret.order[j] = s;
-      std::size_t c = i + (s == 0 ? 1 : (1 << (s + 2)) - (1 << s) - 1);
-      ret.signs[j] = i == 0 && j == N - 1 ? 1 : c & (1 << (s + 1));
-    }
-
-    return ret;
-  }
 };
 
 // static
@@ -229,9 +205,23 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
   }
 
   Vec orthant_v{};
-  const auto m = VToITransform(orthant);
+
+  std::size_t d = 0;
+  if (orthant != 0 && orthant != (1 << N) - 1) {
+    std::size_t j = (orthant - 1) >> 1;
+    j = ~j & (j + 1);
+    while (j != 0) {
+      j >>= 1;
+      d++;
+    }
+  }
+  d = d == N - 1 ? 0 : d + 1;
+
   for (std::size_t j = 0; j < N; j++) {
-    orthant_v[j] = transformed[m.order[j]] * (m.signs[j] ? 1 : -1);
+    std::size_t order = d + j >= N ? d + j - N : d + j;
+    std::size_t c = orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
+    bool sign = orthant == 0 && j == N - 1 ? 1 : c & (1 << (order + 1));
+    orthant_v[j] = transformed[order] * (sign ? 1 : -1);
   }
 
   std::size_t orthant_i = VToI(orthant_v, K - 1);
