@@ -86,25 +86,19 @@ private:
     std::array<bool, N> signs;
   };
 
-  static constexpr auto IToVMap(std::size_t i, std::size_t j) {
+  static constexpr bool IToVMap(std::size_t i, std::size_t j) {
     return (i + (1 << j)) & (1 << (j + 1));
   }
 
-  static constexpr auto VToIMap() {
-    std::array<std::size_t, 1 << N> ret{};
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      std::size_t r = 0;
-      for (std::size_t j = 0; j < N; j++) {
-        std::size_t popcount = 0;
-        std::size_t bits = i >> j;
-        while (bits) {
-          popcount++;
-          bits &= (bits - 1);
-        }
-        bool bit = popcount & 1;
-        r |= bit << j;
+  static constexpr std::size_t VToIMap(std::size_t i) {
+    std::size_t ret = 0;
+    std::size_t popcount = 0;
+    for (std::size_t j = N; j > 0; j--) {
+      if (i & (1 << (j - 1))) {
+        popcount++;
       }
-      ret[i] = r;
+      bool bit = popcount & 1;
+      ret |= bit << (j - 1);
     }
     return ret;
   }
@@ -155,7 +149,6 @@ private:
     return ret;
   }
 
-  static constexpr auto v_to_i_map = VToIMap();
   static constexpr auto i_to_v_transforms = IToVTransforms();
   static constexpr auto v_to_i_transforms = VToITransforms();
 };
@@ -249,7 +242,7 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec &v, std::size_t K) {
     transformed[j] = v[j] + ((v[j] > 0 ? -1 : 1) << (K - 1));
   }
 
-  std::size_t orthant = v_to_i_map[coords];
+  std::size_t orthant = VToIMap(coords);
 
   Vec orthant_v{};
   const auto &m = v_to_i_transforms[orthant];
