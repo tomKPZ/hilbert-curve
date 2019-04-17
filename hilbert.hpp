@@ -104,11 +104,7 @@ class Hilbert {
     }
 
     for (std::size_t j = 0; j < N; j++) {
-      ret.order[j] = d;
-      d = d == N - 1 ? 0 : d + 1;
-    }
-
-    for (std::size_t j = 0; j < N; j++) {
+      ret.order[j] = d + j >= N ? d + j - N : d + j;
       std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
       ret.signs[j] = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
     }
@@ -131,15 +127,8 @@ class Hilbert {
     d = d == N - 1 ? 0 : d + 1;
 
     for (std::size_t j = 0; j < N; j++) {
-      ret.order[j] = d;
-      d = d == N - 1 ? 0 : d + 1;
-    }
-
-    for (std::size_t j = 0; j < N; j++) {
-      std::size_t s = j + d;
-      if (s >= N) {
-        s -= N;
-      }
+      std::size_t s = d + j >= N ? d + j - N : d + j;
+      ret.order[j] = s;
       std::size_t c = i + (s == 0 ? 1 : (1 << (s + 2)) - (1 << s) - 1);
       ret.signs[j] = i == 0 && j == N - 1 ? 1 : c & (1 << (s + 1));
     }
