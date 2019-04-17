@@ -89,17 +89,13 @@ private:
   static constexpr auto IToVMap() {
     constexpr std::size_t TwoPowN = 1 << N;
     std::array<std::size_t, TwoPowN> ret{};
-    if constexpr (N > 0) {
-      auto np = Hilbert<N - 1, Int>::IToVMap();
-      for (std::size_t i : {0, 1}) {
-        for (std::size_t j = 0; j < TwoPowN / 2; j++) {
-          auto &new_vec = ret[i * TwoPowN / 2 + j];
-          new_vec = np[i ? TwoPowN / 2 - 1 - j : j];
-          if (i) {
-            new_vec |= 1 << (N - 1);
-          }
-        }
+    for (std::size_t i = 0; i < TwoPowN; i++) {
+      std::size_t r = 0;
+      for (std::size_t j = 0; j < N; j++) {
+        bool bit = (i + (1 << j)) & (1 << (j + 1));
+        r |= bit << j;
       }
+      ret[i] = r;
     }
     return ret;
   }

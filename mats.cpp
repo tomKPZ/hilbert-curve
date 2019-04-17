@@ -1032,12 +1032,35 @@ void TestComputeTransitionIndex() {
   }
 }
 
+void TestShape() {
+  constexpr std::size_t N = 5;
+  std::cout << "BaseShape" << std::endl;
+  constexpr auto vecs = BaseShape<N>();
+  for (const auto &vec : vecs) {
+    for (int i : vec) {
+      std::cout << i << '\t';
+    }
+    std::cout << std::endl;
+  }
+}
+
+bool ComputeBaseShapeIJ(std::size_t i, std::size_t j) {
+  return (i + (1 << j)) & (1 << (j + 1));
+}
+
+void TestComputeBaseShapeIJ() {
+  constexpr std::size_t N = 5;
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << ComputeBaseShapeIJ(i, j) << '\t';
+    }
+    std::cout << std::endl;
+  }
+}
+
 int main() {
-  TestShapeAndTransitions();
+  TestShape();
   std::cout << std::endl;
-  TestComputeTransition();
-  std::cout << std::endl;
-  ;
-  TestComputeTransitionIndex();
+  TestComputeBaseShapeIJ();
   return 0;
 }
