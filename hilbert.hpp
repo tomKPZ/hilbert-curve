@@ -132,11 +132,11 @@ constexpr void Hilbert<N, Int>::Curve(Vec* vs, std::size_t K) {
 
       Vec& v2 = vs[current++];
       for (std::size_t j = 0; j < N; j++) {
-	std::size_t order = d + j >= N ? d + j - N : d + j;
+        std::size_t order = d + j >= N ? d + j - N : d + j;
         std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
         bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-	std::size_t coord = (i + (1 << j)) & (1 << (j + 1));
-	std::size_t offset = (coord ? 1 : -1) * (1 << (K - 1));
+        std::size_t coord = (i + (1 << j)) & (1 << (j + 1));
+        std::size_t offset = (coord ? 1 : -1) * (1 << (K - 1));
         v2[j] = v[order] * (sign ? 1 : -1) + offset;
       }
     }
@@ -177,14 +177,16 @@ constexpr typename Hilbert<N, Int>::Vec Hilbert<N, Int>::IToV(std::size_t i,
   return v;
 }
 
-// static
-template <std::size_t N, typename Int>
-constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
+template <typename Int>
+constexpr std::size_t VToI(Int* v,
+                           Int* transformed,
+                           Int* orthant_v,
+                           std::size_t K,
+                           std::size_t N) {
   if (K == 0) {
     return 0;
   }
 
-  Vec transformed{};
   std::size_t orthant = 0;
   std::size_t parity = 0;
   for (std::size_t j = 0; j < N; j++) {
@@ -204,7 +206,6 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
   }
   d = d == N - 1 ? 0 : d + 1;
 
-  Vec orthant_v{};
   for (std::size_t j = 0; j < N; j++) {
     std::size_t order = d + j >= N ? d + j - N : d + j;
     std::size_t c =
@@ -213,8 +214,17 @@ constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
     orthant_v[j] = transformed[order] * (sign ? 1 : -1);
   }
 
-  std::size_t orthant_i = VToI(orthant_v, K - 1);
-  return orthant_i + orthant * (1 << N * (K - 1));
+  std::size_t offset = orthant * (1 << N * (K - 1));
+  return offset + VToI<Int>(orthant_v, transformed, v, K - 1, N);
+}
+
+// static
+template <std::size_t N, typename Int>
+constexpr std::size_t Hilbert<N, Int>::VToI(const Vec& v, std::size_t K) {
+  Vec v2 = v;
+  Vec transformed{};
+  Vec orthant_v{};
+  return ::VToI<Int>(v2.data(), transformed.data(), orthant_v.data(), K, N);
 }
 
 // static
