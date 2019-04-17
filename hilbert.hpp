@@ -81,8 +81,6 @@ class Hilbert {
 
   Hilbert() = delete;
 
-  friend class Hilbert<N + 1, Int>;
-
   struct CompressedPermutationMatrix {
     std::array<std::size_t, N> order;
     std::array<bool, N> signs;
@@ -112,12 +110,7 @@ class Hilbert {
 
     for (std::size_t j = 0; j < N; j++) {
       std::size_t c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-      ret.signs[j] = c & (1 << (j + 1));
-    }
-    if constexpr (N > 0) {
-      if (i == 0) {
-        ret.signs[0] = 1;
-      }
+      ret.signs[j] = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
     }
 
     return ret;
@@ -148,12 +141,7 @@ class Hilbert {
         s -= N;
       }
       std::size_t c = i + (s == 0 ? 1 : (1 << (s + 2)) - (1 << s) - 1);
-      ret.signs[j] = c & (1 << (s + 1));
-    }
-    if constexpr (N > 0) {
-      if (i == 0) {
-        ret.signs[N - 1] = 1;
-      }
+      ret.signs[j] = i == 0 && j == N - 1 ? 1 : c & (1 << (s + 1));
     }
 
     return ret;
