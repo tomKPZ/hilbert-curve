@@ -131,14 +131,46 @@ class Hilbert {
     return ret;
   }
 
-  static constexpr auto VToITransforms() {
-    std::array<CompressedPermutationMatrix, (1 << N)> ret{};
-    for (std::size_t i = 0; i < (1 << N); i++) {
-      for (std::size_t j = 0; j < N; j++) {
-        ret[i].order[i_to_v_transforms[i].order[j]] = j;
-        ret[i].signs[i_to_v_transforms[i].order[j]] =
-            i_to_v_transforms[i].signs[j];
+  static constexpr auto VToITransform(std::size_t i) {
+    CompressedPermutationMatrix ret{};
+
+    std::size_t d = 0;
+    if (i != 0 && i != (1 << N) - 1) {
+      std::size_t j = (i - 1) >> 1;
+      j = ~j & (j + 1);
+      while (j != 0) {
+        j >>= 1;
+        d++;
       }
+    }
+    d = d == N - 1 ? 0 : d + 1;
+
+    for (std::size_t j = 0; j < N; j++) {
+      ret.order[j] = d;
+      d = d == N - 1 ? 0 : d + 1;
+    }
+
+    for (std::size_t j = 0; j < N; j++) {
+      std::size_t s = j + ret.order[0];
+      if (s >= N) {
+        s -= N;
+      }
+      std::size_t c = i + (s == 0 ? 1 : (1 << (s + 2)) - (1 << s) - 1);
+      ret.signs[j] = c & (1 << (s + 1));
+    }
+    if constexpr (N > 0) {
+      if (i == 0) {
+        ret.signs[N - 1] = 1;
+      }
+    }
+
+    return ret;
+  }
+
+  static constexpr auto VToITransforms() {
+    std ::array<CompressedPermutationMatrix, (1 << N)> ret{};
+    for (std::size_t i = 0; i < (1 << N); i++) {
+      ret[i] = VToITransform(i);
     }
     return ret;
   }

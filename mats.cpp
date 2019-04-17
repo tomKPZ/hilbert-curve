@@ -1187,10 +1187,54 @@ constexpr auto VToITransforms() {
   return ret;
 }
 
+template <std::size_t N>
+constexpr auto VToITransform(std::size_t i) {
+  CompressedPermutationMatrix<N> ret{};
+
+  std::size_t d = 0;
+  if (i != 0 && i != (1 << N) - 1) {
+    std::size_t j = (i - 1) >> 1;
+    j = ~j & (j + 1);
+    while (j != 0) {
+      j >>= 1;
+      d++;
+    }
+  }
+  d = d == N - 1 ? 0 : d + 1;
+
+  for (std::size_t j = 0; j < N; j++) {
+    ret.order[j] = d;
+    d = d == N - 1 ? 0 : d + 1;
+  }
+
+  for (std::size_t j = 0; j < N; j++) {
+    std::size_t s = (j + ret.order[0]) % N;
+    std::size_t c = i + (s == 0 ? 1 : (1 << (s + 2)) - (1 << s) - 1);
+    ret.signs[j] = c & (1 << (s + 1));
+  }
+  if constexpr (N > 0) {
+    if (i == 0) {
+      ret.signs[N - 1] = 1;
+    }
+  }
+
+  return ret;
+}
+
+template <std::size_t N>
+constexpr auto VToITransforms2() {
+  std ::array<CompressedPermutationMatrix<N>, (1 << N)> ret{};
+  for (std::size_t i = 0; i < (1 << N); i++) {
+    ret[i] = VToITransform<N>(i);
+  }
+  return ret;
+}
+
 void TestVToITransforms() {
-  constexpr std::size_t N = 5;
+  constexpr std::size_t N = 3;
   constexpr auto i2v = IToVTransforms<N>();
   constexpr auto v2i = VToITransforms<N>();
+  constexpr auto v2i2 = VToITransforms2<N>();
   for (std::size_t i = 0; i < (1 << N); i++) {
     for (std::size_t j = 0; j < N; j++) {
       std::cout << i2v[i].order[j] << '\t';
@@ -1199,6 +1243,10 @@ void TestVToITransforms() {
     for (std::size_t j = 0; j < N; j++) {
       std::cout << v2i[i].order[j] << '\t';
     }
+    std::cout << '\t';
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << v2i2[i].order[j] << '\t';
+    }
     std::cout << std::endl;
     for (std::size_t j = 0; j < N; j++) {
       std::cout << (i2v[i].signs[j] ? '+' : '-') << '\t';
@@ -1206,6 +1254,10 @@ void TestVToITransforms() {
     std::cout << '\t';
     for (std::size_t j = 0; j < N; j++) {
       std::cout << (v2i[i].signs[j] ? '+' : '-') << '\t';
+    }
+    std::cout << '\t';
+    for (std::size_t j = 0; j < N; j++) {
+      std::cout << (v2i2[i].signs[j] ? '+' : '-') << '\t';
     }
     std::cout << std::endl;
     std::cout << std::endl;
