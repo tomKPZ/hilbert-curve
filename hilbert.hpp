@@ -118,21 +118,22 @@ constexpr /* static inline */ void Curve(std::size_t N,
 
 template <std::size_t N, std::size_t K, typename Int>
 constexpr std::array<std::array<Int, N>, 1 << N * K> Curve() {
-  std::array<std::array<Int, N>, 1 << N * K> ret{};
-  Curve(K, &ret[0]);
-  return ret;
+  std::array<std::array<Int, N>, 1 << N * K> curve{};
+  Curve(K, curve.data());
+  return curve;
 }
 
 template <std::size_t N, typename Int>
 std::unique_ptr<std::array<Int, N>[]> Curve(std::size_t K) {
-  std::unique_ptr<std::array<Int, N>[]> ret(new std::array<Int, N>[1 << N * K]);
+  std::unique_ptr<std::array<Int, N>[]> curve(
+      new std::array<Int, N>[1 << N * K]);
   if (K == 0) {
-    Curve<Int>(N, K, ret.get()[0].data(), nullptr);
-    return ret;
+    Curve<Int>(N, K, curve.get()[0].data(), nullptr);
+    return curve;
   }
   auto prev = Curve<N, Int>(K - 1);
-  Curve<Int>(N, K, ret.get()[0].data(), prev.get()[0].data());
-  return ret;
+  Curve<Int>(N, K, curve.get()[0].data(), prev.get()[0].data());
+  return curve;
 }
 
 template <std::size_t N, typename Int>
