@@ -3,8 +3,7 @@
 #include <cassert>
 #include <fstream>
 
-template <std::size_t N, std::size_t K, bool Write = false>
-void OpTestData() {
+template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
   std::string fname =
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;

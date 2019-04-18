@@ -1,55 +1,23 @@
 #ifndef HILBERT_HPP
 #define HILBERT_HPP
 
-#include <array>
-#include <memory>
 #include <type_traits>
 
-template <typename Int = int, typename UInt = unsigned int>
-class Hilbert {
+template <typename Int = int, typename UInt = unsigned int> class Hilbert {
  public:
-  template <UInt N>
-  using Vec = std::array<Int, N>;
-
   // Curve: Computes the K'th step of an N dimensional Hilbert curve.
-
-  template <UInt N, UInt K>
-  static constexpr std::array<Vec<N>, 1 << N * K> Curve();
-  template <UInt N, UInt K>
-  static std::unique_ptr<std::array<Vec<N>, 1 << N * K>> Curve(std::nullptr_t);
-  template <UInt N, UInt K>
-  static void Curve(std::array<Vec<N>, 1 << N * K>* curve);
-
-  template <UInt N>
-  static std::unique_ptr<Vec<N>[]> Curve(UInt K);
-  template <UInt N>
-  static constexpr void Curve(UInt K, Vec<N> curve[]);
-
-  static std::unique_ptr<Int[]> Curve(UInt K);
+  template <UInt N, UInt K> static constexpr void Curve(Int curve[]);
+  template <UInt N> static constexpr void Curve(UInt K, Int curve[]);
   static constexpr void Curve(UInt N, UInt K, Int curve[]);
 
   // IToV: Computes the i'th vector in Curve(N, K).
-
-  template <UInt N, UInt K>
-  static constexpr Vec<N> IToV(UInt i);
-  template <UInt N, UInt K>
-  static constexpr void IToV(UInt i, Vec<N>*);
-
-  template <UInt N>
-  static constexpr Vec<N> IToV(UInt K, UInt i);
-  template <UInt N>
-  static constexpr void IToV(UInt K, UInt i, Vec<N>*);
-
+  template <UInt N, UInt K> static constexpr void IToV(UInt i, Int v[]);
+  template <UInt N> static constexpr void IToV(UInt K, UInt i, Int v[]);
   static constexpr void IToV(UInt N, UInt K, UInt i, Int v[]);
 
   // IToV: Computes the index that v would have in Curve(N, K).
-
-  template <UInt N, UInt K>
-  static constexpr UInt VToI(const Vec<N>& v);
-
-  template <UInt N>
-  static constexpr UInt VToI(UInt K, const Vec<N>& v);
-
+  template <UInt N, UInt K> static constexpr UInt VToI(const Int v[]);
+  template <UInt N> static constexpr UInt VToI(UInt K, const Int v[]);
   static constexpr UInt VToI(UInt N, UInt K, const Int v[]);
 
   // Curve(), IToV(), and VToI() all operate on hilbert curves centered
@@ -57,35 +25,17 @@ class Hilbert {
   // the 2nd iteration of a 1D hilbert curve would have points at [{-3},
   // {-1}, {1}, {3}].  Sometimes this data is more useful based at 0
   // with a distance 1 between points.
-
   template <UInt N, UInt K>
-  static constexpr Vec<N> OffsetV(const Vec<N>& center_v);
-  template <UInt N, UInt K>
-  static constexpr void OffsetV(const Vec<N>& center_v, Vec<N>* offset_v);
-
+  static constexpr void OffsetV(const Int center_v[], Int offset_v[]);
   template <UInt N>
-  static constexpr Vec<N> OffsetV(UInt K, const Vec<N>& center_v);
-  template <UInt N>
-  static constexpr void OffsetV(UInt K,
-                                const Vec<N>& center_v,
-                                Vec<N>* offset_v);
-
+  static constexpr void OffsetV(UInt K, const Int center_v[], Int offset_v[]);
   static constexpr void OffsetV(UInt K, const Int center_v[], Int offset_v[]);
 
   // The inverse operation of Offset() described above.
-
   template <UInt N, UInt K>
-  static constexpr Vec<N> CenterV(const Vec<N>& offset_v);
-  template <UInt N, UInt K>
-  static constexpr void CenterV(const Vec<N>& offset_v, Vec<N>* center_v);
-
+  static constexpr void CenterV(const Int offset_v[], Int center_v[]);
   template <UInt N>
-  static constexpr Vec<N> CenterV(UInt K, const Vec<N>& offset_v);
-  template <UInt N>
-  static constexpr void CenterV(UInt K,
-                                const Vec<N>& offset_v,
-                                Vec<N>* center_v);
-
+  static constexpr void CenterV(UInt K, const Int offset_v[], Int center_v[]);
   static constexpr void CenterV(UInt K, const Int offset_v[], Int center_v[]);
 
  private:
@@ -194,8 +144,7 @@ class Hilbert {
   }
 };
 
-template <typename Int, typename UInt>
-template <UInt N, UInt K>
+template <typename Int, typename UInt> template <UInt N, UInt K>
 constexpr std::array<std::array<Int, N>, 1 << N * K>
 Hilbert<Int, UInt>::Curve() {
   std::array<Vec<N>, 1 << N * K> curve{};
@@ -203,8 +152,7 @@ Hilbert<Int, UInt>::Curve() {
   return curve;
 }
 
-template <typename Int, typename UInt>
-template <UInt N>
+template <typename Int, typename UInt> template <UInt N>
 std::unique_ptr<std::array<Int, N>[]> Hilbert<Int, UInt>::Curve(UInt K) {
   std::unique_ptr<Vec<N>[]> curve(new Vec<N>[1 << N * K]);
   if (K == 0) {
@@ -217,14 +165,12 @@ std::unique_ptr<std::array<Int, N>[]> Hilbert<Int, UInt>::Curve(UInt K) {
 }
 
 template <typename Int, typename UInt>
-template <UInt N>
-constexpr void Hilbert<Int, UInt>::Curve(UInt K, Vec<N>* vs) {
+template <UInt N> constexpr void Hilbert<Int, UInt>::Curve(UInt K, Vec<N>* vs) {
   Vec<N> v{};
   Curve(N, K, vs[0].data(), v.data());
 }
 
-template <typename Int, typename UInt>
-template <UInt N>
+template <typename Int, typename UInt> template <UInt N>
 constexpr std::array<Int, N> Hilbert<Int, UInt>::IToV(UInt K, UInt i) {
   Vec<N> v{};
   Vec<N> orthant_v{};
@@ -232,8 +178,7 @@ constexpr std::array<Int, N> Hilbert<Int, UInt>::IToV(UInt K, UInt i) {
   return v;
 }
 
-template <typename Int, typename UInt>
-template <UInt N>
+template <typename Int, typename UInt> template <UInt N>
 constexpr UInt Hilbert<Int, UInt>::VToI(UInt K, const Vec<N>& v) {
   Vec<N> vec = v;
   Vec<N> transformed{};
@@ -241,8 +186,7 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt K, const Vec<N>& v) {
   return VToI(N, K, vec.data(), transformed.data(), orthant_v.data());
 }
 
-template <typename Int, typename UInt>
-template <UInt N>
+template <typename Int, typename UInt> template <UInt N>
 constexpr std::array<Int, N> Hilbert<Int, UInt>::OffsetV(
     UInt K,
     const Vec<N>& center_v) {
@@ -253,8 +197,7 @@ constexpr std::array<Int, N> Hilbert<Int, UInt>::OffsetV(
   return offset_v;
 }
 
-template <typename Int, typename UInt>
-template <UInt N>
+template <typename Int, typename UInt> template <UInt N>
 constexpr std::array<Int, N> Hilbert<Int, UInt>::CenterV(
     UInt K,
     const Vec<N>& offset_v) {
