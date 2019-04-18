@@ -9,12 +9,12 @@ void OpTestData() {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
-  auto buf = hilbert::Curve<N>(K);
+  auto buf = Hilbert<>::Curve<N>(K);
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
-    assert(hilbert::IToV<N>(K, i) == buf[i]);
-    assert(hilbert::VToI<N>(K, buf[i]) == i);
-    const auto v = hilbert::OffsetV<N>(K, buf[i]);
-    assert(hilbert::CenterV<N>(K, v) == buf[i]);
+    assert(Hilbert<>::IToV<N>(K, i) == buf[i]);
+    assert(Hilbert<>::VToI<N>(K, buf[i]) == i);
+    const auto v = Hilbert<>::OffsetV<N>(K, buf[i]);
+    assert(Hilbert<>::CenterV<N>(K, v) == buf[i]);
     for (int x : v) {
       uint8_t bytes[2];
       if constexpr (Write) {
