@@ -1,6 +1,9 @@
 #include "hilbert.hpp"
 
+#include <memory>
+
 int main(void) {
-  Hilbert<>::Curve<2>(14);
+  std::unique_ptr<int[]> curve{new int[2 * (1 << 2 * 14)]};
+  Hilbert<>::Curve<2>(14, curve.get());
   return 0;
 }

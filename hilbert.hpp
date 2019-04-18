@@ -29,14 +29,20 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
   static constexpr void OffsetV(const Int center_v[], Int offset_v[]);
   template <UInt N>
   static constexpr void OffsetV(UInt K, const Int center_v[], Int offset_v[]);
-  static constexpr void OffsetV(UInt K, const Int center_v[], Int offset_v[]);
+  static constexpr void OffsetV(UInt N,
+                                UInt K,
+                                const Int center_v[],
+                                Int offset_v[]);
 
   // The inverse operation of Offset() described above.
   template <UInt N, UInt K>
   static constexpr void CenterV(const Int offset_v[], Int center_v[]);
   template <UInt N>
   static constexpr void CenterV(UInt K, const Int offset_v[], Int center_v[]);
-  static constexpr void CenterV(UInt K, const Int offset_v[], Int center_v[]);
+  static constexpr void CenterV(UInt N,
+                                UInt K,
+                                const Int offset_v[],
+                                Int center_v[]);
 
  private:
   static_assert(std::is_signed_v<Int>);
@@ -45,7 +51,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
   Hilbert() = delete;
 
   // TODO: Make sure this gets inlined.
-  static constexpr void Curve(UInt N, UInt K, Int* vs, const Int* pvs) {
+  static constexpr void CurveImpl(UInt N, UInt K, Int* vs, const Int* pvs) {
     if (K == 0) {
       for (UInt j = 0; j < N; j++) {
         vs[j] = 0;
@@ -75,7 +81,11 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
   }
 
-  static constexpr void IToV(UInt N, UInt K, UInt i, Int* v, Int* orthant_v) {
+  static constexpr void IToVImpl(UInt N,
+                                 UInt K,
+                                 UInt i,
+                                 Int* v,
+                                 Int* orthant_v) {
     if (K == 0) {
       for (UInt j = 0; j < N; j++) {
         v[i] = 0;
@@ -105,11 +115,11 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
   }
 
-  static constexpr UInt VToI(UInt N,
-                             UInt K,
-                             Int* v,
-                             Int* transformed,
-                             Int* orthant_v) {
+  static constexpr UInt VToIImpl(UInt N,
+                                 UInt K,
+                                 const Int* v,
+                                 Int* transformed,
+                                 Int* orthant_v) {
     if (K == 0) {
       return 0;
     }
@@ -142,70 +152,118 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     UInt offset = orthant * (1 << N * (K - 1));
     return offset + VToI(N, K - 1, orthant_v, transformed, v);
   }
+
+  static constexpr void OffsetVImpl(UInt N,
+                                    UInt K,
+                                    const Int center_v[],
+                                    Int offset_v[]) {
+    for (UInt i = 0; i < N; i++) {
+      offset_v[i] = (center_v[i] + (1 << K)) >> 1;
+    }
+  }
+
+  static constexpr void CenterVImpl(UInt N,
+                                    UInt K,
+                                    const Int offset_v[],
+                                    Int center_v[]) {
+    for (UInt i = 0; i < N; i++) {
+      center_v[i] = offset_v[i] * 2 - (1 << K) + 1;
+    }
+  }
 };
 
 template <typename Int, typename UInt> template <UInt N, UInt K>
-constexpr std::array<std::array<Int, N>, 1 << N * K>
-Hilbert<Int, UInt>::Curve() {
-  std::array<Vec<N>, 1 << N * K> curve{};
-  Curve(K, curve.data());
-  return curve;
+constexpr void Hilbert<Int, UInt>::Curve(Int curve[]) {
+  Curve(N, K, curve);
 }
 
 template <typename Int, typename UInt> template <UInt N>
-std::unique_ptr<std::array<Int, N>[]> Hilbert<Int, UInt>::Curve(UInt K) {
-  std::unique_ptr<Vec<N>[]> curve(new Vec<N>[1 << N * K]);
-  if (K == 0) {
-    Curve(N, K, curve.get()[0].data(), nullptr);
-    return curve;
-  }
-  auto prev = Curve<N>(K - 1);
-  Curve(N, K, curve.get()[0].data(), prev.get()[0].data());
-  return curve;
+constexpr void Hilbert<Int, UInt>::Curve(UInt K, Int curve[]) {
+  Curve(N, K, curve);
 }
 
 template <typename Int, typename UInt>
-template <UInt N> constexpr void Hilbert<Int, UInt>::Curve(UInt K, Vec<N>* vs) {
-  Vec<N> v{};
-  Curve(N, K, vs[0].data(), v.data());
-}
-
-template <typename Int, typename UInt> template <UInt N>
-constexpr std::array<Int, N> Hilbert<Int, UInt>::IToV(UInt K, UInt i) {
-  Vec<N> v{};
-  Vec<N> orthant_v{};
-  IToV(N, K, i, v.data(), orthant_v.data());
-  return v;
-}
-
-template <typename Int, typename UInt> template <UInt N>
-constexpr UInt Hilbert<Int, UInt>::VToI(UInt K, const Vec<N>& v) {
-  Vec<N> vec = v;
-  Vec<N> transformed{};
-  Vec<N> orthant_v{};
-  return VToI(N, K, vec.data(), transformed.data(), orthant_v.data());
-}
-
-template <typename Int, typename UInt> template <UInt N>
-constexpr std::array<Int, N> Hilbert<Int, UInt>::OffsetV(
-    UInt K,
-    const Vec<N>& center_v) {
-  Vec<N> offset_v{};
-  for (UInt i = 0; i < N; i++) {
-    offset_v[i] = (center_v[i] + (1 << K)) >> 1;
+constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
+  if (K == 0) {
+    CurveImpl(N, K, curve, nullptr);
+    return;
   }
-  return offset_v;
+  CurveImpl(N, K, curve, curve);
+}
+
+template <typename Int, typename UInt> template <UInt N, UInt K>
+constexpr void Hilbert<Int, UInt>::IToV(UInt i, Int v[]) {
+  IToV(N, K, i, v);
 }
 
 template <typename Int, typename UInt> template <UInt N>
-constexpr std::array<Int, N> Hilbert<Int, UInt>::CenterV(
-    UInt K,
-    const Vec<N>& offset_v) {
-  Vec<N> center_v{};
-  for (UInt i = 0; i < N; i++) {
-    center_v[i] = offset_v[i] * 2 - (1 << K) + 1;
-  }
-  return center_v;
+constexpr void Hilbert<Int, UInt>::IToV(UInt K, UInt i, Int v[]) {
+  IToV(N, K, i, v);
+}
+
+template <typename Int, typename UInt>
+constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
+  Int orthant_v[N];
+  IToVImpl(N, K, i, v, orthant_v);
+}
+
+template <typename Int, typename UInt> template <UInt N, UInt K>
+constexpr UInt Hilbert<Int, UInt>::VToI(const Int v[]) {
+  return VToI(N, K, v);
+}
+
+template <typename Int, typename UInt> template <UInt N>
+constexpr UInt Hilbert<Int, UInt>::VToI(UInt K, const Int v[]) {
+  return VToI(N, K, v);
+}
+
+template <typename Int, typename UInt>
+constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, const Int v[]) {
+  Int transformed[N];
+  Int orthant_v[N];
+  return VToIImpl(N, K, v, transformed, orthant_v);
+}
+
+template <typename Int, typename UInt> template <UInt N, UInt K>
+constexpr void Hilbert<Int, UInt>::OffsetV(const Int center_v[],
+                                           Int offset_v[]) {
+  OffsetV(N, K, center_v, offset_v);
+}
+
+template <typename Int, typename UInt> template <UInt N>
+constexpr void Hilbert<Int, UInt>::OffsetV(UInt K,
+                                           const Int center_v[],
+                                           Int offset_v[]) {
+  OffsetV(N, K, center_v, offset_v);
+}
+
+template <typename Int, typename UInt>
+constexpr void Hilbert<Int, UInt>::OffsetV(UInt N,
+                                           UInt K,
+                                           const Int center_v[],
+                                           Int offset_v[]) {
+  OffsetVImpl(N, K, center_v, offset_v);
+}
+
+template <typename Int, typename UInt> template <UInt N, UInt K>
+constexpr void Hilbert<Int, UInt>::CenterV(const Int offset_v[],
+                                           Int center_v[]) {
+  CenterV(N, K, offset_v, center_v);
+}
+
+template <typename Int, typename UInt> template <UInt N>
+constexpr void Hilbert<Int, UInt>::CenterV(UInt K,
+                                           const Int offset_v[],
+                                           Int center_v[]) {
+  CenterV(N, K, offset_v, center_v);
+}
+
+template <typename Int, typename UInt>
+constexpr void Hilbert<Int, UInt>::CenterV(UInt N,
+                                           UInt K,
+                                           const Int offset_v[],
+                                           Int center_v[]) {
+  CenterVImpl(N, K, offset_v, center_v);
 }
 
 #endif  // HILBERT_HPP
