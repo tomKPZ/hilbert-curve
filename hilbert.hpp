@@ -16,9 +16,10 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
   static constexpr void IToV(UInt N, UInt K, UInt i, Int v[]);
 
   // IToV: Computes the index that v would have in Curve(N, K).
-  template <UInt N, UInt K> static constexpr UInt VToI(const Int v[]);
-  template <UInt N> static constexpr UInt VToI(UInt K, const Int v[]);
-  static constexpr UInt VToI(UInt N, UInt K, const Int v[]);
+  // TODO: Make v const
+  template <UInt N, UInt K> static constexpr UInt VToI(Int v[]);
+  template <UInt N> static constexpr UInt VToI(UInt K, Int v[]);
+  static constexpr UInt VToI(UInt N, UInt K, Int v[]);
 
   // Curve(), IToV(), and VToI() all operate on hilbert curves centered
   // at the origin with points separated a distance of 2.  For example,
@@ -95,7 +96,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
     UInt orthant = i >> (N * (K - 1));
     UInt orthant_i = i & ((1 << N * (K - 1)) - 1);
-    IToV(N, K - 1, orthant_i, orthant_v, v);
+    IToVImpl(N, K - 1, orthant_i, orthant_v, v);
 
     UInt d = N - 1;
     if (orthant != 0 && orthant != (1 << N) - 1) {
@@ -117,7 +118,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
   static constexpr UInt VToIImpl(UInt N,
                                  UInt K,
-                                 const Int* v,
+                                 Int* v,
                                  Int* transformed,
                                  Int* orthant_v) {
     if (K == 0) {
@@ -150,7 +151,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
 
     UInt offset = orthant * (1 << N * (K - 1));
-    return offset + VToI(N, K - 1, orthant_v, transformed, v);
+    return offset + VToIImpl(N, K - 1, orthant_v, transformed, v);
   }
 
   static constexpr void OffsetVImpl(UInt N,
@@ -188,7 +189,10 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
     CurveImpl(N, K, curve, nullptr);
     return;
   }
-  CurveImpl(N, K, curve, curve);
+  // TODO: Fix this.
+  Int* tmp = new Int[N * (1 << N * (K - 1))];
+  Curve(N, K - 1, tmp);
+  CurveImpl(N, K, curve, tmp);
 }
 
 template <typename Int, typename UInt> template <UInt N, UInt K>
@@ -208,17 +212,17 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
 }
 
 template <typename Int, typename UInt> template <UInt N, UInt K>
-constexpr UInt Hilbert<Int, UInt>::VToI(const Int v[]) {
+constexpr UInt Hilbert<Int, UInt>::VToI(Int v[]) {
   return VToI(N, K, v);
 }
 
 template <typename Int, typename UInt> template <UInt N>
-constexpr UInt Hilbert<Int, UInt>::VToI(UInt K, const Int v[]) {
+constexpr UInt Hilbert<Int, UInt>::VToI(UInt K, Int v[]) {
   return VToI(N, K, v);
 }
 
 template <typename Int, typename UInt>
-constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, const Int v[]) {
+constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
   Int transformed[N];
   Int orthant_v[N];
   return VToIImpl(N, K, v, transformed, orthant_v);
