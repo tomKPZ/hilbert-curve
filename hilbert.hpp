@@ -89,7 +89,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
                                  Int* orthant_v) {
     if (K == 0) {
       for (UInt j = 0; j < N; j++) {
-        v[i] = 0;
+        v[j] = 0;
       }
       return;
     }

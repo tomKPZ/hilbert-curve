@@ -12,9 +12,9 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
   auto curve = std::make_unique<std::array<int, N>[]>(N << N * K);
   Hilbert<>::Curve<N, K>(curve[0].data());
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
-    // std::array<int, N> center{};
-    // Hilbert<>::IToV<N, K>(i, center.data());
-    // assert(center == curve[i]);
+    std::array<int, N> center{};
+    Hilbert<>::IToV<N, K>(i, center.data());
+    assert(center == curve[i]);
 
     // TODO: Avoid copy.
     std::array<int, N> copy = curve[i];
@@ -27,7 +27,7 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
     std::array<int, N> recenter = offset;
     Hilbert<>::CenterV<N, K>(offset.data(), recenter.data());
     assert(recenter == curve[i]);
-    
+
     for (int x : offset) {
       uint8_t bytes[2];
       if constexpr (Write) {
