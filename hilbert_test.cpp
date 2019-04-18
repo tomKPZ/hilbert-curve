@@ -9,26 +9,25 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
-  std::unique_ptr<std::array<int, N>[]> curve {
-    new std::array<int, N>[ 1 << N * K ]
-  };
+  auto curve = std::make_unique<std::array<int, N>[]>(N << N * K);
   Hilbert<>::Curve<N, K>(curve[0].data());
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
-    std::array<int, N> center{};
-    Hilbert<>::IToV<N, K>(i, center.data());
-    assert(center == curve[i]);
+    // std::array<int, N> center{};
+    // Hilbert<>::IToV<N, K>(i, center.data());
+    // assert(center == curve[i]);
 
     // TODO: Avoid copy.
     std::array<int, N> copy = curve[i];
     auto i2 = Hilbert<>::VToI<N, K>(copy.data());
     assert(i == i2);
 
-    std::array<int, N> offset = center;
-    Hilbert<>::OffsetV<N, K>(center.data(), offset.data());
+    std::array<int, N> offset = curve[i];
+    Hilbert<>::OffsetV<N, K>(curve[i].data(), offset.data());
 
     std::array<int, N> recenter = offset;
     Hilbert<>::CenterV<N, K>(offset.data(), recenter.data());
-    assert(center == recenter);
+    assert(recenter == curve[i]);
+    
     for (int x : offset) {
       uint8_t bytes[2];
       if constexpr (Write) {
