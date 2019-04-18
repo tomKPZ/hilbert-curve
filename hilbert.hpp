@@ -26,7 +26,7 @@ class Hilbert {
   // already allocated memory for the result.  Example:
   //     // Compute the 3rd iteration of a 2D Hilbert curve.
   //     auto curve = Hilbert<2>::Curve(3);
-  //     for (std::size_t i = 0; i < 1 << (2*3); i++) {
+  //     for (int i = 0; i < 1 << (2*3); i++) {
   //       const auto& v = curve[i];
   //       ...
   //     }
@@ -97,25 +97,23 @@ class Hilbert {
       return;
     }
 
-    size_t current = 0;
     for (UInt i = 0; i < (1U << N); i++) {
-      for (const Int* p = pvs; p != pvs + N * (1 << N * (K - 1)); p += N) {
-        UInt d = N - 1;
-        if (i != 0 && i != (1U << N) - 1) {
-          UInt j = (i - 1) >> 1;
-          for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-            d--;
-          }
+      UInt d = N - 1;
+      if (i != 0 && i != (1U << N) - 1) {
+        UInt j = (i - 1) >> 1;
+        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          d--;
         }
-
-        Int* v2 = vs + N * current++;
-        for (UInt j = 0; j < N; j++) {
-          UInt order = d + j >= N ? d + j - N : d + j;
-          UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-          bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-          UInt coord = (i + (1 << j)) & (1 << (j + 1));
-          UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
-          v2[j] = p[order] * (sign ? 1 : -1) + offset;
+      }
+      for (UInt j = 0; j < N; j++) {
+        UInt order = d + j >= N ? d + j - N : d + j;
+        UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
+        bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+        UInt coord = (i + (1 << j)) & (1 << (j + 1));
+        UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
+	for (UInt k = 0; k < 1U << N * (K - 1); k++) {
+          vs[N * ((i << N * (K - 1)) + k) + j] =
+              pvs[N * k + order] * (sign ? 1 : -1) + offset;
         }
       }
     }
