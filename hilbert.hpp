@@ -80,23 +80,11 @@ template <std::size_t N, typename Int = int>
 constexpr std::array<Int, N> CenterV(std::size_t K,
                                      const std::array<Int, N>& offset_v);
 
-template <std::size_t N, std::size_t K, typename Int>
-constexpr std::array<std::array<Int, N>, 1 << N * K> Curve() {
-  std::array<std::array<Int, N>, 1 << N * K> ret{};
-  Curve(K, &ret[0]);
-  return ret;
-}
-
-template <std::size_t N, typename Int>
-std::unique_ptr<std::array<Int, N>[]> Curve(std::size_t K) {
-  std::unique_ptr<std::array<Int, N>[]> ret(
-      new std::array<Int, N>[1 << (N * K)]);
-  Curve(K, ret.get());
-  return ret;
-}
-
 template <typename Int>
-constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
+constexpr /* static inline */ void Curve(std::size_t N,
+                                         std::size_t K,
+                                         Int* vs,
+                                         const Int* pvs) {
   if (K == 0) {
     for (std::size_t j = 0; j < N; j++) {
       vs[j] = 0;
@@ -104,23 +92,13 @@ constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
     return;
   }
 
-  Int* prev_end = vs + N * (1 << N * K);
-  Int* prev_start = prev_end - N * (1 << N * (K - 1));
-  Curve(N, K - 1, prev_start, v);
   size_t current = 0;
   for (std::size_t i = 0; i < (1U << N); i++) {
-    for (const Int* p = prev_start; p != prev_end; p += N) {
-      // TODO: Avoid copy for orthants 0 to 2^N - 2.
-      for (std::size_t j = 0; j < N; j++) {
-        v[j] = p[j];
-      }
-
+    for (const Int* p = pvs; p != pvs + N * (1 << N * (K - 1)); p += N) {
       std::size_t d = N - 1;
       if (i != 0 && i != (1U << N) - 1) {
         std::size_t j = (i - 1) >> 1;
-        j = ~j & (j + 1);
-        while (j != 0) {
-          j >>= 1;
+        for (std::size_t bits = ~j & (j + 1); bits != 0; bits >>= 1) {
           d--;
         }
       }
@@ -132,10 +110,29 @@ constexpr void Curve(std::size_t N, std::size_t K, Int* vs, Int* v) {
         bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
         std::size_t coord = (i + (1 << j)) & (1 << (j + 1));
         std::size_t offset = (coord ? 1 : -1) * (1 << (K - 1));
-        v2[j] = v[order] * (sign ? 1 : -1) + offset;
+        v2[j] = p[order] * (sign ? 1 : -1) + offset;
       }
     }
   }
+}
+
+template <std::size_t N, std::size_t K, typename Int>
+constexpr std::array<std::array<Int, N>, 1 << N * K> Curve() {
+  std::array<std::array<Int, N>, 1 << N * K> ret{};
+  Curve(K, &ret[0]);
+  return ret;
+}
+
+template <std::size_t N, typename Int>
+std::unique_ptr<std::array<Int, N>[]> Curve(std::size_t K) {
+  std::unique_ptr<std::array<Int, N>[]> ret(new std::array<Int, N>[1 << N * K]);
+  if (K == 0) {
+    Curve<Int>(N, K, ret.get()[0].data(), nullptr);
+    return ret;
+  }
+  auto prev = Curve<N, Int>(K - 1);
+  Curve<Int>(N, K, ret.get()[0].data(), prev.get()[0].data());
+  return ret;
 }
 
 template <std::size_t N, typename Int>
