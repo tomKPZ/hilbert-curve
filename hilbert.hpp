@@ -11,76 +11,82 @@ class Hilbert {
   template <UInt N>
   using Vec = std::array<Int, N>;
 
-  // Computes the K'th iteration of the Hilbert curve.  Returns an array
-  // of 2^(N*K) Vec's.  Use this version of Curve() when K is a small
-  // constant known at compile time.  Example:
-  //     // Compute the 3rd iteration of a 2D Hilbert curve.
-  //     constexpr auto curve = Hilbert<2>::Curve<3>();
-  //     for (const auto& v : curve) { ... }
+  // Curve: Computes the K'th step of an N dimensional Hilbert curve.
+
   template <UInt N, UInt K>
   static constexpr std::array<Vec<N>, 1 << N * K> Curve();
+  template <UInt N, UInt K>
+  static std::unique_ptr<std::array<Vec<N>, 1 << N * K>> Curve(std::nullptr_t);
+  template <UInt N, UInt K>
+  static void Curve(std::array<Vec<N>, 1 << N * K>* curve);
 
-  // Computes the K'th iteration of the Hilbert curve.  Returns a
-  // heap-allocated array of 2^(N*K) Vec's.  Use this version of Curve()
-  // when K is large or not known at compile time; and you haven't
-  // already allocated memory for the result.  Example:
-  //     // Compute the 3rd iteration of a 2D Hilbert curve.
-  //     auto curve = Hilbert<2>::Curve(3);
-  //     for (int i = 0; i < 1 << (2*3); i++) {
-  //       const auto& v = curve[i];
-  //       ...
-  //     }
   template <UInt N>
   static std::unique_ptr<Vec<N>[]> Curve(UInt K);
-
-  // Computes the K'th iteration of the Hilbert curve.  Fills vs with
-  // 2^(N*K) Vec's.  Use this version of Curve() when K is large or not
-  // known at compile time; and you have already allocated memory for
-  // the result.  Example:
-  //     // Compute the 3rd iteration of a 2D Hilbert curve.
-  //     Hilbert<2>::Vec curve[1 << (2*3)];
-  //     Hilbert<2>::Curve(curve, 3);
-  //     for (const auto& v : curve) { ... }
   template <UInt N>
-  static constexpr void Curve(UInt K, Vec<N>* vs);
+  static constexpr void Curve(UInt K, Vec<N> curve[]);
 
-  // Returns the i'th vector of Curve(K).  Example:
-  //     // Compute the 5th vector in the 3rd iteration of a 2D
-  //     // Hilbert curve.
-  //     auto v = Hilbert<2>::IToV(3, 5);  // v is {-7, -1}.
+  static std::unique_ptr<Int[]> Curve(UInt K);
+  static constexpr void Curve(UInt N, UInt K, Int curve[]);
+
+  // IToV: Computes the i'th vector in Curve(N, K).
+
+  template <UInt N, UInt K>
+  static constexpr Vec<N> IToV(UInt i);
+  template <UInt N, UInt K>
+  static constexpr void IToV(UInt i, Vec<N>*);
+
   template <UInt N>
   static constexpr Vec<N> IToV(UInt K, UInt i);
+  template <UInt N>
+  static constexpr void IToV(UInt K, UInt i, Vec<N>*);
 
-  // Returns the index that v would have in Curve(K).  Example:
-  //     // Compute the index of the vector {-7, -1} in the 3rd
-  //     // iteration of a 2D Hilbert curve.
-  //     auto i = Hilbert<2>::VToI(3, {-7, -1});  // i is 5.
+  static constexpr void IToV(UInt N, UInt K, UInt i, Int v[]);
+
+  // IToV: Computes the index that v would have in Curve(N, K).
+
+  template <UInt N, UInt K>
+  static constexpr UInt VToI(const Vec<N>& v);
+
   template <UInt N>
   static constexpr UInt VToI(UInt K, const Vec<N>& v);
+
+  static constexpr UInt VToI(UInt N, UInt K, const Int v[]);
 
   // Curve(), IToV(), and VToI() all operate on hilbert curves centered
   // at the origin with points separated a distance of 2.  For example,
   // the 2nd iteration of a 1D hilbert curve would have points at [{-3},
   // {-1}, {1}, {3}].  Sometimes this data is more useful based at 0
-  // with a distance 1 between points.  Example:
-  //     // Offset the points of the 2nd iteration of a 1D Hilbert
-  //     // curve.
-  //     auto v0 = Hilbert<1>::Offset(2, {-3});  // v0 is {0}.
-  //     auto v1 = Hilbert<1>::Offset(2, {-1});  // v1 is {1}.
-  //     auto v2 = Hilbert<1>::Offset(2, {+1});  // v1 is {2}.
-  //     auto v3 = Hilbert<1>::Offset(2, {+3});  // v1 is {3}.
+  // with a distance 1 between points.
+
+  template <UInt N, UInt K>
+  static constexpr Vec<N> OffsetV(const Vec<N>& center_v);
+  template <UInt N, UInt K>
+  static constexpr void OffsetV(const Vec<N>& center_v, Vec<N>* offset_v);
+
   template <UInt N>
   static constexpr Vec<N> OffsetV(UInt K, const Vec<N>& center_v);
+  template <UInt N>
+  static constexpr void OffsetV(UInt K,
+                                const Vec<N>& center_v,
+                                Vec<N>* offset_v);
 
-  // The inverse operation of Offset() described above.  Example:
-  //     // Center the points of the 2nd iteration of a 1D Hilbert
-  //     // curve.
-  //     auto v0 = Hilbert<1>::Center(2, {0});  // v0 is {-3}.
-  //     auto v1 = Hilbert<1>::Center(2, {1});  // v1 is {-1}.
-  //     auto v2 = Hilbert<1>::Center(2, {2});  // v1 is {+1}.
-  //     auto v3 = Hilbert<1>::Center(2, {3});  // v1 is {+3}.
+  static constexpr void OffsetV(UInt K, const Int center_v[], Int offset_v[]);
+
+  // The inverse operation of Offset() described above.
+
+  template <UInt N, UInt K>
+  static constexpr Vec<N> CenterV(const Vec<N>& offset_v);
+  template <UInt N, UInt K>
+  static constexpr void CenterV(const Vec<N>& offset_v, Vec<N>* center_v);
+
   template <UInt N>
   static constexpr Vec<N> CenterV(UInt K, const Vec<N>& offset_v);
+  template <UInt N>
+  static constexpr void CenterV(UInt K,
+                                const Vec<N>& offset_v,
+                                Vec<N>* center_v);
+
+  static constexpr void CenterV(UInt K, const Int offset_v[], Int center_v[]);
 
  private:
   static_assert(std::is_signed_v<Int>);
@@ -111,7 +117,7 @@ class Hilbert {
         bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
         UInt coord = (i + (1 << j)) & (1 << (j + 1));
         UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
-	for (UInt k = 0; k < 1U << N * (K - 1); k++) {
+        for (UInt k = 0; k < 1U << N * (K - 1); k++) {
           vs[N * ((i << N * (K - 1)) + k) + j] =
               pvs[N * k + order] * (sign ? 1 : -1) + offset;
         }
