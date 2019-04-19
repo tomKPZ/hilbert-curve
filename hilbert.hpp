@@ -120,7 +120,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     IToVImpl(N, K - 1, orthant_i, orthant_v, v);
 
     UInt d = N - 1;
-    if (orthant != 0 && orthant != (1 << N) - 1) {
+    if (orthant != 0 && orthant != (1U << N) - 1) {
       UInt j = (orthant - 1) >> 1;
       for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
         d--;
@@ -155,7 +155,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
 
     UInt d = 1;
-    if (orthant != 0 && orthant != (1 << N) - 1) {
+    if (orthant != 0 && orthant != (1U << N) - 1) {
       UInt j = (orthant - 1) >> 1;
       for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
         d++;
@@ -196,22 +196,32 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
 template <typename Int, typename UInt> template <UInt N, UInt K>
 constexpr void Hilbert<Int, UInt>::Curve(Int curve[]) {
-  Curve(N, K, curve);
+  if constexpr (K == 0) {
+    CurveImpl(N, K, curve);
+  } else {
+    Curve<N, K - 1>(curve);
+    CurveImpl(N, K, curve);
+  }
 }
 
 template <typename Int, typename UInt> template <UInt N>
 constexpr void Hilbert<Int, UInt>::Curve(UInt K, Int curve[]) {
-  Curve(N, K, curve);
+  if (K == 0) {
+    CurveImpl(N, K, curve);
+  } else {
+    Curve<N>(K - 1, curve);
+    CurveImpl(N, K, curve);
+  }
 }
 
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
   if (K == 0) {
     CurveImpl(N, K, curve);
-    return;
+  } else {
+    Curve(N, K - 1, curve);
+    CurveImpl(N, K, curve);
   }
-  Curve(N, K - 1, curve);
-  CurveImpl(N, K, curve);
 }
 
 template <typename Int, typename UInt> template <UInt N, UInt K>

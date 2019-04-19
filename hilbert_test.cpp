@@ -9,7 +9,7 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
-  auto curve = std::make_unique<std::array<int, N>[]>(N << N * K);
+  auto curve = std::make_unique<std::array<int, N>[]>(1 << N * K);
   Hilbert<>::Curve<N, K>(curve[0].data());
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
     std::array<int, N> center{};
