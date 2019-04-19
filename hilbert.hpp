@@ -169,11 +169,11 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
     v[j] = 0;
   }
   for (UInt j = 1; j <= K; j++) {
-    UInt orthant_i = i & ((1 << N * j) - 1);
-    IToVImpl(N, j, orthant_i, orthant_v, v);
     Int* temp = orthant_v;
     orthant_v = v;
     v = temp;
+    UInt orthant_i = i & ((1 << N * j) - 1);
+    IToVImpl(N, j, orthant_i, v, orthant_v);
   }
 }
 
