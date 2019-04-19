@@ -87,16 +87,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
                                  UInt i,
                                  Int* v,
                                  Int* orthant_v) {
-    if (K == 0) {
-      for (UInt j = 0; j < N; j++) {
-        v[j] = 0;
-      }
-      return;
-    }
-
     UInt orthant = i >> (N * (K - 1));
-    UInt orthant_i = i & ((1 << N * (K - 1)) - 1);
-    IToVImpl(N, K - 1, orthant_i, orthant_v, v);
 
     UInt d = N - 1;
     if (orthant != 0 && orthant != (1U << N) - 1) {
@@ -167,8 +158,23 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
 
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
-  Int orthant_v[N];
-  IToVImpl(N, K, i, v, orthant_v);
+  Int buf[N];
+  Int* orthant_v = buf;
+  if (K & 1) {
+    Int* temp = orthant_v;
+    orthant_v = v;
+    v = temp;
+  }
+  for (UInt j = 0; j < N; j++) {
+    v[j] = 0;
+  }
+  for (UInt j = 1; j <= K; j++) {
+    UInt orthant_i = i & ((1 << N * j) - 1);
+    IToVImpl(N, j, orthant_i, orthant_v, v);
+    Int* temp = orthant_v;
+    orthant_v = v;
+    v = temp;
+  }
 }
 
 template <typename Int, typename UInt>
