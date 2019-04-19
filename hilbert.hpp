@@ -52,7 +52,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
   Hilbert() = delete;
 
   // TODO: Make sure this gets inlined.
-  static constexpr void CurveImpl(UInt N, UInt K, Int* vs, const Int* pvs) {
+  static constexpr void CurveImpl(UInt N, UInt K, Int* vs) {
     if (K == 0) {
       for (UInt j = 0; j < N; j++) {
         vs[j] = 0;
@@ -60,9 +60,9 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
       return;
     }
 
-    for (UInt i = 0; i < (1U << N); i++) {
+    for (UInt i = 1; i < (1U << N); i++) {
       UInt d = N - 1;
-      if (i != 0 && i != (1U << N) - 1) {
+      if (i != (1U << N) - 1) {
         UInt j = (i - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
           d--;
@@ -76,8 +76,29 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
         UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
         for (UInt k = 0; k < 1U << N * (K - 1); k++) {
           vs[N * ((i << N * (K - 1)) + k) + j] =
-              pvs[N * k + order] * (sign ? 1 : -1) + offset;
+              vs[N * k + order] * (sign ? 1 : -1) + offset;
         }
+      }
+    }
+
+    UInt order = N - 1;
+    for (UInt write = 0; write < N;) {
+      for (UInt read = order; read < N; read++) {
+        if (order == write) {
+          order = read;
+        }
+
+        UInt c = (read == 0 ? 1 : (1 << (read + 2)) - (1 << read) - 1);
+        bool sign = read == 0 ? 1 : c & (1 << (read + 1));
+        UInt coord = (1 << read) & (1 << (read + 1));
+        UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
+        for (UInt k = 0; k < 1U << N * (K - 1); k++) {
+          Int temp = vs[N * k + order] * (sign ? 1 : -1) + offset;
+          vs[N * k + order] = vs[N * k + write];
+          vs[N * k + write] = temp;
+        }
+
+        write++;
       }
     }
   }
@@ -186,13 +207,11 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt K, Int curve[]) {
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
   if (K == 0) {
-    CurveImpl(N, K, curve, nullptr);
+    CurveImpl(N, K, curve);
     return;
   }
-  // TODO: Fix this.
-  Int* tmp = new Int[N * (1 << N * (K - 1))];
-  Curve(N, K - 1, tmp);
-  CurveImpl(N, K, curve, tmp);
+  Curve(N, K - 1, curve);
+  CurveImpl(N, K, curve);
 }
 
 template <typename Int, typename UInt> template <UInt N, UInt K>
