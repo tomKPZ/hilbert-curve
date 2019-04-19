@@ -112,10 +112,6 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
                                  Int* v,
                                  Int* transformed,
                                  Int* orthant_v) {
-    if (K == 0) {
-      return 0;
-    }
-
     UInt orthant = 0;
     UInt parity = 0;
     for (UInt j = 0; j < N; j++) {
@@ -141,8 +137,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
       orthant_v[j] = transformed[order] * (sign ? 1 : -1);
     }
 
-    UInt offset = orthant * (1 << N * (K - 1));
-    return offset + VToIImpl(N, K - 1, orthant_v, transformed, v);
+    return orthant * (1 << N * (K - 1));
   }
 };
 
@@ -179,9 +174,19 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
 
 template <typename Int, typename UInt>
 constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
-  Int transformed[N];
-  Int orthant_v[N];
-  return VToIImpl(N, K, v, transformed, orthant_v);
+  Int buf1[N];
+  Int buf2[N];
+
+  Int* transformed = buf1;
+  Int* orthant_v = buf2;
+  UInt i = 0;
+  for (UInt j = K; j > 0; j--) {
+    i += VToIImpl(N, j, v, transformed, orthant_v);
+    Int* temp = orthant_v;
+    orthant_v = v;
+    v = temp;
+  }
+  return i;
 }
 
 template <typename Int, typename UInt>
