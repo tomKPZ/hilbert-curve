@@ -77,12 +77,11 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
       }
     }
 
-    for (UInt write = 0; write < N; ++write) {
-      UInt c = (1 << (N + 1)) - (1 << (N - 1)) - 1;
-      UInt sign = c & (1 << N);
-      UInt coord = (1 << (N - 1)) & (1 << N);
-      UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
-      for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
+    UInt sign = ((1 << (N + 1)) - (1 << (N - 1)) - 1) & (1 << N);
+    UInt coord = (1 << (N - 1)) & (1 << N);
+    UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+    for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
+      for (UInt write = 0; write < N; ++write) {
         Int temp = curve[N * (ip + 1) - 1] * (sign ? 1 : -1) + offset;
         curve[N * (ip + 1) - 1] = curve[N * ip + write];
         curve[N * ip + write] = temp;
