@@ -82,11 +82,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
   }
 
-  static constexpr void IToVImpl(UInt N,
-                                 UInt K,
-                                 UInt i,
-                                 Int* v,
-                                 Int* orthant_v) {
+  static constexpr void IToVImpl(UInt N, UInt K, UInt i, Int* v) {
     UInt orthant = i >> (N * (K - 1));
 
     UInt d = N - 1;
@@ -97,13 +93,24 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
       }
     }
 
-    for (UInt j = 0; j < N; j++) {
-      UInt order = d + j >= N ? d + j - N : d + j;
-      UInt c = orthant + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-      bool sign = orthant == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-      UInt coord = (orthant + (1 << j)) & (1 << (j + 1));
-      UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
-      v[j] = orthant_v[order] * (sign ? 1 : -1) + offset;
+    for (UInt write = 0; write < N;) {
+      for (UInt read = d; read < N; read++) {
+        if (d == write) {
+          d = read;
+        }
+
+        UInt c =
+            orthant + (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
+        bool sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
+        UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
+        UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
+
+        Int temp = v[read] * (sign ? 1 : -1) + offset;
+        v[read] = v[write];
+        v[write] = temp;
+
+        write++;
+      }
     }
   }
 
@@ -153,22 +160,12 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
 
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
-  Int buf[N];
-  Int* orthant_v = buf;
-  if (K & 1) {
-    Int* temp = orthant_v;
-    orthant_v = v;
-    v = temp;
-  }
   for (UInt j = 0; j < N; j++) {
     v[j] = 0;
   }
   for (UInt j = 1; j <= K; j++) {
-    Int* temp = orthant_v;
-    orthant_v = v;
-    v = temp;
     UInt orthant_i = i & ((1 << N * j) - 1);
-    IToVImpl(N, j, orthant_i, v, orthant_v);
+    IToVImpl(N, j, orthant_i, v);
   }
 }
 
