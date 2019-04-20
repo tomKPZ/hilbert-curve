@@ -108,16 +108,15 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
     }
 
     for (UInt write = 0; write < N;) {
+      UInt c =
+          orthant + (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
+      UInt sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
+      UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
+      UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
       for (UInt read = rotate; read < N; ++read) {
         if (rotate == write) {
           rotate = read;
         }
-
-        UInt c =
-            orthant + (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
-        UInt sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
-        UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
-        UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
 
         Int temp = v[read] * (sign ? 1 : -1) + offset;
         v[read] = v[write];
@@ -152,16 +151,15 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
 
     UInt original_rotate = rotate;
     for (UInt write = 0; write < N;) {
+      UInt order = original_rotate + write >= N ? original_rotate + write - N
+                                                : original_rotate + write;
+      UInt c =
+          orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
+      UInt sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
       for (UInt read = rotate; read < N; ++read) {
         if (rotate == write) {
           rotate = read;
         }
-
-        UInt order = original_rotate + write >= N ? original_rotate + write - N
-                                                  : original_rotate + write;
-        UInt c =
-            orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
-        UInt sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
 
         Int temp = v[read] * (sign ? 1 : -1);
         v[read] = v[write];
@@ -171,7 +169,7 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
       }
     }
 
-    i += orthant * (1 << N * (k - 1));
+    i += (orthant << N * (k - 1));
   }
   return i;
 }
