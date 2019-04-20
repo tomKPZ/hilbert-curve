@@ -36,47 +36,6 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
   static_assert(std::is_unsigned_v<UInt>);
 
   Hilbert() = delete;
-
-  static constexpr UInt VToIImpl(UInt N, UInt K, Int* v) {
-    UInt orthant = 0;
-    UInt parity = 0;
-    for (UInt j = 0; j < N; j++) {
-      parity ^= v[N - j - 1] > 0;
-      orthant |= parity << (N - j - 1);
-      v[N - j - 1] = v[N - j - 1] + ((v[N - j - 1] > 0 ? -1 : 1) << (K - 1));
-    }
-
-    UInt d = 1;
-    if (orthant != 0 && orthant != (1U << N) - 1) {
-      UInt j = (orthant - 1) >> 1;
-      for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-        d++;
-      }
-    }
-    d = d == N ? 0 : d;
-
-    UInt di = d;
-    for (UInt write = 0; write < N;) {
-      for (UInt read = d; read < N; read++) {
-        if (d == write) {
-          d = read;
-        }
-
-        UInt order = di + write >= N ? di + write - N : di + write;
-        UInt c =
-            orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
-        bool sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
-
-        Int temp = v[read] * (sign ? 1 : -1);
-        v[read] = v[write];
-        v[write] = temp;
-
-        write++;
-      }
-    }
-
-    return orthant * (1 << N * (K - 1));
-  }
 };
 
 template <typename Int, typename UInt>
@@ -171,8 +130,45 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
 template <typename Int, typename UInt>
 constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
   UInt i = 0;
-  for (UInt j = K; j > 0; j--) {
-    i += VToIImpl(N, j, v);
+  for (UInt k = K; k > 0; k--) {
+    UInt orthant = 0;
+    UInt parity = 0;
+    for (UInt j = 0; j < N; j++) {
+      parity ^= v[N - j - 1] > 0;
+      orthant |= parity << (N - j - 1);
+      v[N - j - 1] = v[N - j - 1] + ((v[N - j - 1] > 0 ? -1 : 1) << (k - 1));
+    }
+
+    UInt d = 1;
+    if (orthant != 0 && orthant != (1U << N) - 1) {
+      UInt j = (orthant - 1) >> 1;
+      for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+        d++;
+      }
+    }
+    d = d == N ? 0 : d;
+
+    UInt di = d;
+    for (UInt write = 0; write < N;) {
+      for (UInt read = d; read < N; read++) {
+        if (d == write) {
+          d = read;
+        }
+
+        UInt order = di + write >= N ? di + write - N : di + write;
+        UInt c =
+            orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
+        bool sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
+
+        Int temp = v[read] * (sign ? 1 : -1);
+        v[read] = v[write];
+        v[write] = temp;
+
+        write++;
+      }
+    }
+
+    i += orthant * (1 << N * (k - 1));
   }
   return i;
 }
