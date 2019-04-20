@@ -6,7 +6,7 @@
 #include <iterator>
 #include <memory>
 
-template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
+template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
   std::string fname =
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
@@ -51,51 +51,19 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
 }
 
 int main() {
-  OpTestData<0, 0>();
-  OpTestData<0, 1>();
-  OpTestData<1, 0>();
+  static constexpr struct {
+    std::size_t N;
+    std::size_t K;
+  } tests[] = {
+      {0, 0}, {0, 1}, {1, 0}, {1, 1},  {1, 2}, {1, 3}, {1, 4}, {1, 5},  {1, 6},
+      {1, 7}, {1, 8}, {1, 9}, {1, 10}, {2, 1}, {2, 2}, {2, 3}, {2, 4},  {2, 5},
+      {2, 6}, {2, 7}, {3, 1}, {3, 2},  {3, 3}, {3, 4}, {4, 1}, {4, 2},  {4, 3},
+      {5, 1}, {5, 2}, {6, 1}, {6, 2},  {7, 1}, {8, 1}, {9, 1}, {10, 1},
+  };
 
-  OpTestData<1, 1>();
-  OpTestData<1, 2>();
-  OpTestData<1, 3>();
-  OpTestData<1, 4>();
-  OpTestData<1, 5>();
-  OpTestData<1, 6>();
-  OpTestData<1, 7>();
-  OpTestData<1, 8>();
-  OpTestData<1, 9>();
-  OpTestData<1, 10>();
-
-  OpTestData<2, 1>();
-  OpTestData<2, 2>();
-  OpTestData<2, 3>();
-  OpTestData<2, 4>();
-  OpTestData<2, 5>();
-  OpTestData<2, 6>();
-  OpTestData<2, 7>();
-
-  OpTestData<3, 1>();
-  OpTestData<3, 2>();
-  OpTestData<3, 3>();
-  OpTestData<3, 4>();
-
-  OpTestData<4, 1>();
-  OpTestData<4, 2>();
-  OpTestData<4, 3>();
-
-  OpTestData<5, 1>();
-  OpTestData<5, 2>();
-
-  OpTestData<6, 1>();
-  OpTestData<6, 2>();
-
-  OpTestData<7, 1>();
-
-  OpTestData<8, 1>();
-
-  OpTestData<9, 1>();
-
-  OpTestData<10, 1>();
+  for (const auto& test : tests) {
+    OpTestData(test.N, test.K);
+  }
 
   return 0;
 }
