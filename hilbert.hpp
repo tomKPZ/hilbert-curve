@@ -11,7 +11,13 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
   static constexpr void Curve(UInt N, UInt K, Int curve[]) {
     CurveImpl(N, K, curve);
   }
-  template <UInt N> static constexpr void Curve(UInt K, Int curve[]) {
+  template <UInt N> static constexpr void CurveN(UInt K, Int curve[]) {
+    CurveImpl(N, K, curve);
+  }
+  template <UInt K> static constexpr void CurveK(UInt N, Int curve[]) {
+    CurveImpl(N, K, curve);
+  }
+  template <UInt N, UInt K> static constexpr void Curve(Int curve[]) {
     CurveImpl(N, K, curve);
   }
 
@@ -20,7 +26,13 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
   static constexpr void IToV(UInt N, UInt K, UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <UInt N> static constexpr void IToV(UInt K, UInt i, Int v[]) {
+  template <UInt N> static constexpr void IToVN(UInt K, UInt i, Int v[]) {
+    IToVImpl(N, K, i, v);
+  }
+  template <UInt K> static constexpr void IToVK(UInt N, UInt i, Int v[]) {
+    IToVImpl(N, K, i, v);
+  }
+  template <UInt N, UInt K> static constexpr void IToV(UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
   }
 
@@ -30,7 +42,13 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
   static constexpr UInt VToI(UInt N, UInt K, Int v[]) {
     return VToIImpl(N, K, v);
   }
-  template <UInt N> static constexpr UInt VToI(UInt K, Int v[]) {
+  template <UInt N> static constexpr UInt VToIN(UInt K, Int v[]) {
+    return VToIImpl(N, K, v);
+  }
+  template <UInt K> static constexpr UInt VToIK(UInt N, Int v[]) {
+    return VToIImpl(N, K, v);
+  }
+  template <UInt N, UInt K> static constexpr UInt VToI(Int v[]) {
     return VToIImpl(N, K, v);
   }
 
@@ -49,7 +67,15 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     OffsetVImpl(N, K, cv, ov);
   }
   template <UInt N>
-  static constexpr void OffsetV(UInt K, const Int cv[], Int ov[]) {
+  static constexpr void OffsetVN(UInt K, const Int cv[], Int ov[]) {
+    OffsetVImpl(N, K, cv, ov);
+  }
+  template <UInt K>
+  static constexpr void OffsetVK(UInt N, const Int cv[], Int ov[]) {
+    OffsetVImpl(N, K, cv, ov);
+  }
+  template <UInt N, UInt K>
+  static constexpr void OffsetV(const Int cv[], Int ov[]) {
     OffsetVImpl(N, K, cv, ov);
   }
 
@@ -60,7 +86,15 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     CenterVImpl(N, K, ov, cv);
   }
   template <UInt N>
-  static constexpr void CenterV(UInt K, const Int ov[], Int cv[]) {
+  static constexpr void CenterVN(UInt K, const Int ov[], Int cv[]) {
+    CenterVImpl(N, K, ov, cv);
+  }
+  template <UInt K>
+  static constexpr void CenterVK(UInt N, const Int ov[], Int cv[]) {
+    CenterVImpl(N, K, ov, cv);
+  }
+  template <UInt N, UInt K>
+  static constexpr void CenterV(const Int ov[], Int cv[]) {
     CenterVImpl(N, K, ov, cv);
   }
 
