@@ -37,51 +37,6 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
   Hilbert() = delete;
 
-  // TODO: Make sure this gets inlined.
-  static constexpr void CurveImpl(UInt N, UInt K, Int* vs) {
-    for (UInt i = 1; i < (1U << N); i++) {
-      UInt d = N - 1;
-      if (i != (1U << N) - 1) {
-        UInt j = (i - 1) >> 1;
-        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          d--;
-        }
-      }
-      for (UInt j = 0; j < N; j++) {
-        UInt order = d + j >= N ? d + j - N : d + j;
-        UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-        bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-        UInt coord = (i + (1 << j)) & (1 << (j + 1));
-        UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
-        for (UInt k = 0; k < 1U << N * (K - 1); k++) {
-          vs[N * ((i << N * (K - 1)) + k) + j] =
-              vs[N * k + order] * (sign ? 1 : -1) + offset;
-        }
-      }
-    }
-
-    UInt order = N - 1;
-    for (UInt write = 0; write < N;) {
-      for (UInt read = order; read < N; read++) {
-        if (order == write) {
-          order = read;
-        }
-
-        UInt c = (read == 0 ? 1 : (1 << (read + 2)) - (1 << read) - 1);
-        bool sign = read == 0 ? 1 : c & (1 << (read + 1));
-        UInt coord = (1 << read) & (1 << (read + 1));
-        UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
-        for (UInt k = 0; k < 1U << N * (K - 1); k++) {
-          Int temp = vs[N * k + order] * (sign ? 1 : -1) + offset;
-          vs[N * k + order] = vs[N * k + write];
-          vs[N * k + write] = temp;
-        }
-
-        write++;
-      }
-    }
-  }
-
   static constexpr void IToVImpl(UInt N, UInt K, UInt i, Int* v) {
     UInt orthant = i >> (N * (K - 1));
 
@@ -161,8 +116,48 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
   for (UInt i = 0; i < N; i++) {
     curve[i] = 0;
   }
-  for (UInt i = 1; i <= K; i++) {
-    CurveImpl(N, i, curve);
+  for (UInt k = 1; k <= K; k++) {
+    for (UInt i = 1; i < (1U << N); i++) {
+      UInt d = N - 1;
+      if (i != (1U << N) - 1) {
+        UInt j = (i - 1) >> 1;
+        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          d--;
+        }
+      }
+      for (UInt j = 0; j < N; j++) {
+        UInt order = d + j >= N ? d + j - N : d + j;
+        UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
+        bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+        UInt coord = (i + (1 << j)) & (1 << (j + 1));
+        UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+        for (UInt ip = 0; ip < 1U << N * (k - 1); ip++) {
+          curve[N * ((i << N * (k - 1)) + ip) + j] =
+              curve[N * ip + order] * (sign ? 1 : -1) + offset;
+        }
+      }
+    }
+
+    UInt order = N - 1;
+    for (UInt write = 0; write < N;) {
+      for (UInt read = order; read < N; read++) {
+        if (order == write) {
+          order = read;
+        }
+
+        UInt c = (read == 0 ? 1 : (1 << (read + 2)) - (1 << read) - 1);
+        bool sign = read == 0 ? 1 : c & (1 << (read + 1));
+        UInt coord = (1 << read) & (1 << (read + 1));
+        UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+        for (UInt ip = 0; ip < 1U << N * (k - 1); ip++) {
+          Int temp = curve[N * ip + order] * (sign ? 1 : -1) + offset;
+          curve[N * ip + order] = curve[N * ip + write];
+          curve[N * ip + write] = temp;
+        }
+
+        write++;
+      }
+    }
   }
 }
 
