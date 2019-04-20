@@ -114,10 +114,7 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
   }
 
-  static constexpr UInt VToIImpl(UInt N,
-                                 UInt K,
-                                 Int* v,
-                                 Int* orthant_v) {
+  static constexpr UInt VToIImpl(UInt N, UInt K, Int* v) {
     UInt orthant = 0;
     UInt parity = 0;
     for (UInt j = 0; j < N; j++) {
@@ -135,12 +132,24 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
     }
     d = d == N ? 0 : d;
 
-    for (UInt j = 0; j < N; j++) {
-      UInt order = d + j >= N ? d + j - N : d + j;
-      UInt c =
-          orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
-      bool sign = orthant == 0 && j == N - 1 ? 1 : c & (1 << (order + 1));
-      orthant_v[j] = v[order] * (sign ? 1 : -1);
+    UInt di = d;
+    for (UInt write = 0; write < N;) {
+      for (UInt read = d; read < N; read++) {
+        if (d == write) {
+          d = read;
+        }
+
+        UInt order = di + write >= N ? di + write - N : di + write;
+        UInt c =
+            orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
+        bool sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
+
+        Int temp = v[read] * (sign ? 1 : -1);
+        v[read] = v[write];
+        v[write] = temp;
+
+        write++;
+      }
     }
 
     return orthant * (1 << N * (K - 1));
@@ -170,14 +179,9 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
 
 template <typename Int, typename UInt>
 constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
-  Int buf[N];
-  Int* orthant_v = buf;
   UInt i = 0;
   for (UInt j = K; j > 0; j--) {
-    i += VToIImpl(N, j, v, orthant_v);
-    Int* temp = orthant_v;
-    orthant_v = v;
-    v = temp;
+    i += VToIImpl(N, j, v);
   }
   return i;
 }
