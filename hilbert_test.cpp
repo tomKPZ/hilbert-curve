@@ -1,7 +1,9 @@
 #include "hilbert.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <iterator>
 #include <memory>
 
 template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
@@ -9,26 +11,26 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
-  auto curve = std::make_unique<std::array<int, N>[]>(1 << N * K);
-  Hilbert<>::Curve(N, K, curve[0].data());
+  auto curve = std::make_unique<int[]>(N << N * K);
+  Hilbert<>::Curve(N, K, curve.get());
   for (std::size_t i = 0; i < 1 << (N * K); i++) {
-    std::array<int, N> center{};
-    Hilbert<>::IToV(N, K, i, center.data());
-    assert(center == curve[i]);
+    int center[N];
+    Hilbert<>::IToV(N, K, i, center);
+    assert(std::equal(center, center + N, curve.get() + N * i));
 
-    std::array<int, N> copy = curve[i];
-    auto i2 = Hilbert<>::VToI(N, K, copy.data());
+    int copy[N];
+    std::copy(curve.get() + N * i, curve.get() + N * (i + 1), copy);
+    auto i2 = Hilbert<>::VToI(N, K, copy);
     assert(i == i2);
     for (int x : copy) {
       assert(x == 0);
     }
 
-    std::array<int, N> offset = curve[i];
-    Hilbert<>::OffsetV(N, K, curve[i].data(), offset.data());
-
-    std::array<int, N> recenter = offset;
-    Hilbert<>::CenterV(N, K, offset.data(), recenter.data());
-    assert(recenter == curve[i]);
+    int offset[N];
+    Hilbert<>::OffsetV(N, K, curve.get() + N * i, offset);
+    int recenter[N];
+    Hilbert<>::CenterV(N, K, offset, recenter);
+    assert(std::equal(recenter, recenter + N, curve.get() + N * i));
 
     for (int x : offset) {
       uint8_t bytes[2];

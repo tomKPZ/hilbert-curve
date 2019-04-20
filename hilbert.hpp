@@ -171,7 +171,7 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
       }
     }
 
-    i += orthant * (1 << N * (k - 1));
+    i += orthant << N * (k - 1);
   }
   return i;
 }
