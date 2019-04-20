@@ -3,6 +3,14 @@
 
 #include <cstdint>
 
+#if defined(__GNUC__)
+#define HB_ALWAYS_INLINE inline __attribute__((__always_inline__))
+#elif defined(_MSC_VER)
+#define HB_ALWAYS_INLINE __forceinline
+#else
+#define HB_ALWAYS_INLINE inline
+#endif
+
 template <typename Int = int, typename UInt = std::size_t> class Hilbert {
  public:
   // Computes the K'th step of an N dimensional Hilbert curve.  The
@@ -101,9 +109,9 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
  private:
   Hilbert() = delete;
 
-  __attribute__((always_inline)) static constexpr void CurveImpl(UInt N,
-                                                                 UInt K,
-                                                                 Int curve[]) {
+  HB_ALWAYS_INLINE static constexpr void CurveImpl(UInt N,
+                                                   UInt K,
+                                                   Int curve[]) {
     for (UInt i = 0; i < N; ++i) {
       curve[i] = 0;
     }
@@ -142,10 +150,10 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     }
   }
 
-  __attribute__((always_inline)) static constexpr void IToVImpl(UInt N,
-                                                                UInt K,
-                                                                UInt i,
-                                                                Int v[]) {
+  HB_ALWAYS_INLINE static constexpr void IToVImpl(UInt N,
+                                                  UInt K,
+                                                  UInt i,
+                                                  Int v[]) {
     for (UInt j = 0; j < N; ++j) {
       v[j] = 0;
     }
@@ -183,9 +191,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     }
   }
 
-  __attribute__((always_inline)) static constexpr UInt VToIImpl(UInt N,
-                                                                UInt K,
-                                                                Int v[]) {
+  HB_ALWAYS_INLINE static constexpr UInt VToIImpl(UInt N, UInt K, Int v[]) {
     UInt i = 0;
     for (UInt k = K; k > 0; --k) {
       UInt orthant = 0;
@@ -233,15 +239,19 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     return i;
   }
 
-  __attribute__((always_inline)) static constexpr void
-  OffsetVImpl(UInt N, UInt K, const Int cv[], Int ov[]) {
+  HB_ALWAYS_INLINE static constexpr void OffsetVImpl(UInt N,
+                                                     UInt K,
+                                                     const Int cv[],
+                                                     Int ov[]) {
     for (UInt i = 0; i < N; ++i) {
       ov[i] = (cv[i] + (1 << K)) >> 1;
     }
   }
 
-  __attribute__((always_inline)) static constexpr void
-  CenterVImpl(UInt N, UInt K, const Int ov[], Int cv[]) {
+  HB_ALWAYS_INLINE static constexpr void CenterVImpl(UInt N,
+                                                     UInt K,
+                                                     const Int ov[],
+                                                     Int cv[]) {
     for (UInt i = 0; i < N; ++i) {
       cv[i] = ov[i] * 2 - (1 << K) + 1;
     }
