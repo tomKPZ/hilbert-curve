@@ -16,10 +16,12 @@ template <std::size_t N, std::size_t K, bool Write = false> void OpTestData() {
     Hilbert<>::IToV(N, K, i, center.data());
     assert(center == curve[i]);
 
-    // TODO: Avoid copy.
     std::array<int, N> copy = curve[i];
     auto i2 = Hilbert<>::VToI(N, K, copy.data());
     assert(i == i2);
+    for (int x : copy) {
+      assert(x == 0);
+    }
 
     std::array<int, N> offset = curve[i];
     Hilbert<>::OffsetV(N, K, curve[i].data(), offset.data());

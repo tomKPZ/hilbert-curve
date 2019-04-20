@@ -5,27 +5,40 @@
 
 template <typename Int = int, typename UInt = unsigned int> class Hilbert {
  public:
-  // Curve: Computes the K'th step of an N dimensional Hilbert curve.
+  // Computes the K'th step of an N dimensional Hilbert curve.  The
+  // result will be stored in curve, which must have space for 2^(N*K)
+  // N-dimensional vectors, for a total of N*2^(N*K) integers.
   static constexpr void Curve(UInt N, UInt K, Int curve[]);
 
-  // IToV: Computes the i'th vector in Curve(N, K).
+  // Computes the i'th vector in Curve(N, K).  The result will be
+  // stored in v.  Requires i < 2^(N*K).
   static constexpr void IToV(UInt N, UInt K, UInt i, Int v[]);
 
-  // IToV: Computes the index that v would have in Curve(N, K).
-  // TODO: Make v const
+  // Computes the index that v would have in the K'th step of an N
+  // dimensional Hilbert curve.  Behavior is undefined if v is not a
+  // point on the curve.  v will be zeroed when this function returns.
   static constexpr UInt VToI(UInt N, UInt K, Int v[]);
 
-  // Curve(), IToV(), and VToI() all operate on hilbert curves centered
-  // at the origin with points separated a distance of 2.  For example,
-  // the 2nd iteration of a 1D hilbert curve would have points at [{-3},
-  // {-1}, {1}, {3}].  Sometimes this data is more useful based at 0
-  // with a distance 1 between points.
+  // Curve(), IToV(), and VToI() all operate on Hilbert curves
+  // centered at the origin with points separated a distance of 2.
+  // For example, the 2nd iteration of a 1D Hilbert curve would have
+  // points at [{-3}, {-1}, {1}, {3}].  Sometimes this data is more
+  // useful based at 0 with a distance 1 between points.  In this
+  // format, the curve would have points at [{0}, {1}, {2}, {3}].
+  // OffsetV() and CenterV() converts between these formats.
+
+  // Scales center_v down by a factor of 2 and shifts it to lie in the
+  // first orthant.  Stores the result in offset_v.  center_v may
+  // point to the same vector as offset_v.
   static constexpr void OffsetV(UInt N,
                                 UInt K,
                                 const Int center_v[],
                                 Int offset_v[]);
 
-  // The inverse operation of Offset() described above.
+  // Shifts offset_v to be centered at the origin and scales it up by
+  // a factor of 2.  Stores the result in center_v.  offset_v may
+  // point to the same vector as center_v.
+
   static constexpr void CenterV(UInt N,
                                 UInt K,
                                 const Int offset_v[],
