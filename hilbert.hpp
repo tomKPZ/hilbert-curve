@@ -52,20 +52,20 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
-    for (UInt i = 0; i < N; ++i) {
+  for (UInt i = 0; i < N; ++i) {
     curve[i] = 0;
   }
   for (UInt k = 1; k <= K; ++k) {
     for (UInt i = 1; i < (1U << N); ++i) {
-      UInt d = N - 1;
+      UInt rotate = N - 1;
       if (i != (1U << N) - 1) {
         UInt j = (i - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          --d;
+          --rotate;
         }
       }
       for (UInt j = 0; j < N; ++j) {
-        UInt order = d + j >= N ? d + j - N : d + j;
+        UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
         UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
         UInt sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
         UInt coord = (i + (1 << j)) & (1 << (j + 1));
@@ -100,18 +100,18 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
     UInt orthant_i = i & ((1 << N * k) - 1);
     UInt orthant = orthant_i >> (N * (k - 1));
 
-    UInt d = N - 1;
+    UInt rotate = N - 1;
     if (orthant != 0 && orthant != (1U << N) - 1) {
       UInt j = (orthant - 1) >> 1;
       for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-        --d;
+        --rotate;
       }
     }
 
     for (UInt write = 0; write < N;) {
-      for (UInt read = d; read < N; ++read) {
-        if (d == write) {
-          d = read;
+      for (UInt read = rotate; read < N; ++read) {
+        if (rotate == write) {
+          rotate = read;
         }
 
         UInt c =
@@ -142,23 +142,24 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
       v[N - j - 1] = v[N - j - 1] + ((v[N - j - 1] > 0 ? -1 : 1) << (k - 1));
     }
 
-    UInt d = 1;
+    UInt rotate = 1;
     if (orthant != 0 && orthant != (1U << N) - 1) {
       UInt j = (orthant - 1) >> 1;
       for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-        ++d;
+        ++rotate;
       }
     }
-    d = d == N ? 0 : d;
+    rotate = rotate == N ? 0 : rotate;
 
-    UInt di = d;
+    UInt original_rotate = rotate;
     for (UInt write = 0; write < N;) {
-      for (UInt read = d; read < N; ++read) {
-        if (d == write) {
-          d = read;
+      for (UInt read = rotate; read < N; ++read) {
+        if (rotate == write) {
+          rotate = read;
         }
 
-        UInt order = di + write >= N ? di + write - N : di + write;
+        UInt order = original_rotate + write >= N ? original_rotate + write - N
+                                                  : original_rotate + write;
         UInt c =
             orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
         UInt sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
