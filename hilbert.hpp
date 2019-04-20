@@ -52,37 +52,37 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
-  for (UInt i = 0; i < N; i++) {
+    for (UInt i = 0; i < N; ++i) {
     curve[i] = 0;
   }
-  for (UInt k = 1; k <= K; k++) {
-    for (UInt i = 1; i < (1U << N); i++) {
+  for (UInt k = 1; k <= K; ++k) {
+    for (UInt i = 1; i < (1U << N); ++i) {
       UInt d = N - 1;
       if (i != (1U << N) - 1) {
         UInt j = (i - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          d--;
+          --d;
         }
       }
-      for (UInt j = 0; j < N; j++) {
+      for (UInt j = 0; j < N; ++j) {
         UInt order = d + j >= N ? d + j - N : d + j;
         UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-        bool sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+        UInt sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
         UInt coord = (i + (1 << j)) & (1 << (j + 1));
         UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
-        for (UInt ip = 0; ip < 1U << N * (k - 1); ip++) {
+        for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
           curve[N * ((i << N * (k - 1)) + ip) + j] =
               curve[N * ip + order] * (sign ? 1 : -1) + offset;
         }
       }
     }
 
-    for (UInt write = 0; write < N; write++) {
+    for (UInt write = 0; write < N; ++write) {
       UInt c = (1 << (N + 1)) - (1 << (N - 1)) - 1;
-      bool sign = c & (1 << N);
+      UInt sign = c & (1 << N);
       UInt coord = (1 << (N - 1)) & (1 << N);
       UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
-      for (UInt ip = 0; ip < 1U << N * (k - 1); ip++) {
+      for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
         Int temp = curve[N * (ip + 1) - 1] * (sign ? 1 : -1) + offset;
         curve[N * (ip + 1) - 1] = curve[N * ip + write];
         curve[N * ip + write] = temp;
@@ -93,10 +93,10 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
 
 template <typename Int, typename UInt>
 constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
-  for (UInt j = 0; j < N; j++) {
+  for (UInt j = 0; j < N; ++j) {
     v[j] = 0;
   }
-  for (UInt k = 1; k <= K; k++) {
+  for (UInt k = 1; k <= K; ++k) {
     UInt orthant_i = i & ((1 << N * k) - 1);
     UInt orthant = orthant_i >> (N * (k - 1));
 
@@ -104,19 +104,19 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
     if (orthant != 0 && orthant != (1U << N) - 1) {
       UInt j = (orthant - 1) >> 1;
       for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-        d--;
+        --d;
       }
     }
 
     for (UInt write = 0; write < N;) {
-      for (UInt read = d; read < N; read++) {
+      for (UInt read = d; read < N; ++read) {
         if (d == write) {
           d = read;
         }
 
         UInt c =
             orthant + (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
-        bool sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
+        UInt sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
         UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
         UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
 
@@ -124,7 +124,7 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
         v[read] = v[write];
         v[write] = temp;
 
-        write++;
+        ++write;
       }
     }
   }
@@ -133,10 +133,10 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
 template <typename Int, typename UInt>
 constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
   UInt i = 0;
-  for (UInt k = K; k > 0; k--) {
+  for (UInt k = K; k > 0; --k) {
     UInt orthant = 0;
     UInt parity = 0;
-    for (UInt j = 0; j < N; j++) {
+    for (UInt j = 0; j < N; ++j) {
       parity ^= v[N - j - 1] > 0;
       orthant |= parity << (N - j - 1);
       v[N - j - 1] = v[N - j - 1] + ((v[N - j - 1] > 0 ? -1 : 1) << (k - 1));
@@ -146,14 +146,14 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
     if (orthant != 0 && orthant != (1U << N) - 1) {
       UInt j = (orthant - 1) >> 1;
       for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-        d++;
+        ++d;
       }
     }
     d = d == N ? 0 : d;
 
     UInt di = d;
     for (UInt write = 0; write < N;) {
-      for (UInt read = d; read < N; read++) {
+      for (UInt read = d; read < N; ++read) {
         if (d == write) {
           d = read;
         }
@@ -161,13 +161,13 @@ constexpr UInt Hilbert<Int, UInt>::VToI(UInt N, UInt K, Int v[]) {
         UInt order = di + write >= N ? di + write - N : di + write;
         UInt c =
             orthant + (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
-        bool sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
+        UInt sign = orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
 
         Int temp = v[read] * (sign ? 1 : -1);
         v[read] = v[write];
         v[write] = temp;
 
-        write++;
+        ++write;
       }
     }
 
@@ -181,7 +181,7 @@ constexpr void Hilbert<Int, UInt>::OffsetV(UInt N,
                                            UInt K,
                                            const Int center_v[],
                                            Int offset_v[]) {
-  for (UInt i = 0; i < N; i++) {
+  for (UInt i = 0; i < N; ++i) {
     offset_v[i] = (center_v[i] + (1 << K)) >> 1;
   }
 }
@@ -191,7 +191,7 @@ constexpr void Hilbert<Int, UInt>::CenterV(UInt N,
                                            UInt K,
                                            const Int offset_v[],
                                            Int center_v[]) {
-  for (UInt i = 0; i < N; i++) {
+  for (UInt i = 0; i < N; ++i) {
     center_v[i] = offset_v[i] * 2 - (1 << K) + 1;
   }
 }
