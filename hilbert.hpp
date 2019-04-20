@@ -38,7 +38,6 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
   // Shifts offset_v to be centered at the origin and scales it up by
   // a factor of 2.  Stores the result in center_v.  offset_v may
   // point to the same vector as center_v.
-
   static constexpr void CenterV(UInt N,
                                 UInt K,
                                 const Int offset_v[],
@@ -78,24 +77,15 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
       }
     }
 
-    UInt order = N - 1;
-    for (UInt write = 0; write < N;) {
-      for (UInt read = order; read < N; read++) {
-        if (order == write) {
-          order = read;
-        }
-
-        UInt c = (read == 0 ? 1 : (1 << (read + 2)) - (1 << read) - 1);
-        bool sign = read == 0 ? 1 : c & (1 << (read + 1));
-        UInt coord = (1 << read) & (1 << (read + 1));
-        UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
-        for (UInt ip = 0; ip < 1U << N * (k - 1); ip++) {
-          Int temp = curve[N * ip + order] * (sign ? 1 : -1) + offset;
-          curve[N * ip + order] = curve[N * ip + write];
-          curve[N * ip + write] = temp;
-        }
-
-        write++;
+    for (UInt write = 0; write < N; write++) {
+      UInt c = (1 << (N + 1)) - (1 << (N - 1)) - 1;
+      bool sign = c & (1 << N);
+      UInt coord = (1 << (N - 1)) & (1 << N);
+      UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+      for (UInt ip = 0; ip < 1U << N * (k - 1); ip++) {
+        Int temp = curve[N * (ip + 1) - 1] * (sign ? 1 : -1) + offset;
+        curve[N * (ip + 1) - 1] = curve[N * ip + write];
+        curve[N * ip + write] = temp;
       }
     }
   }
