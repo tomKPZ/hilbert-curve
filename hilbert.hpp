@@ -37,38 +37,6 @@ template <typename Int = int, typename UInt = unsigned int> class Hilbert {
 
   Hilbert() = delete;
 
-  static constexpr void IToVImpl(UInt N, UInt K, UInt i, Int* v) {
-    UInt orthant = i >> (N * (K - 1));
-
-    UInt d = N - 1;
-    if (orthant != 0 && orthant != (1U << N) - 1) {
-      UInt j = (orthant - 1) >> 1;
-      for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-        d--;
-      }
-    }
-
-    for (UInt write = 0; write < N;) {
-      for (UInt read = d; read < N; read++) {
-        if (d == write) {
-          d = read;
-        }
-
-        UInt c =
-            orthant + (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
-        bool sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
-        UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
-        UInt offset = (coord ? 1 : -1) * (1 << (K - 1));
-
-        Int temp = v[read] * (sign ? 1 : -1) + offset;
-        v[read] = v[write];
-        v[write] = temp;
-
-        write++;
-      }
-    }
-  }
-
   static constexpr UInt VToIImpl(UInt N, UInt K, Int* v) {
     UInt orthant = 0;
     UInt parity = 0;
@@ -166,9 +134,37 @@ constexpr void Hilbert<Int, UInt>::IToV(UInt N, UInt K, UInt i, Int v[]) {
   for (UInt j = 0; j < N; j++) {
     v[j] = 0;
   }
-  for (UInt j = 1; j <= K; j++) {
-    UInt orthant_i = i & ((1 << N * j) - 1);
-    IToVImpl(N, j, orthant_i, v);
+  for (UInt k = 1; k <= K; k++) {
+    UInt orthant_i = i & ((1 << N * k) - 1);
+    UInt orthant = orthant_i >> (N * (k - 1));
+
+    UInt d = N - 1;
+    if (orthant != 0 && orthant != (1U << N) - 1) {
+      UInt j = (orthant - 1) >> 1;
+      for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+        d--;
+      }
+    }
+
+    for (UInt write = 0; write < N;) {
+      for (UInt read = d; read < N; read++) {
+        if (d == write) {
+          d = read;
+        }
+
+        UInt c =
+            orthant + (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
+        bool sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
+        UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
+        UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+
+        Int temp = v[read] * (sign ? 1 : -1) + offset;
+        v[read] = v[write];
+        v[write] = temp;
+
+        write++;
+      }
+    }
   }
 }
 
