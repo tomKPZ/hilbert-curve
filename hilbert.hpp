@@ -64,13 +64,13 @@ constexpr void Hilbert<Int, UInt>::Curve(UInt N, UInt K, Int curve[]) {
           --rotate;
         }
       }
-      for (UInt j = 0; j < N; ++j) {
-        UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
-        UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-        UInt sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
-        UInt coord = (i + (1 << j)) & (1 << (j + 1));
-        UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
-        for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
+      for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
+        for (UInt j = 0; j < N; ++j) {
+          UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
+          UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
+          UInt sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+          UInt coord = (i + (1 << j)) & (1 << (j + 1));
+          UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
           curve[N * ((i << N * (k - 1)) + ip) + j] =
               curve[N * ip + order] * (sign ? 1 : -1) + offset;
         }
