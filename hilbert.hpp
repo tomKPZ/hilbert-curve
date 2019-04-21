@@ -125,14 +125,15 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
         }
         for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
+          UInt write_base = N * ((i << N * (k - 1)) + ip);
+          UInt read_base = N * ip;
           for (UInt j = 0; j < N; ++j) {
             UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
             UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
-            UInt sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
+            Int sign = (i == 0 && j == 0 ? 1 : c & (1 << (j + 1))) ? 1 : -1;
             UInt coord = (i + (1 << j)) & (1 << (j + 1));
             Int offset = (coord ? 1 : -1) * (1 << (k - 1));
-            curve[N * ((i << N * (k - 1)) + ip) + j] =
-                curve[N * ip + order] * (sign ? 1 : -1) + offset;
+            curve[write_base + j] = curve[read_base + order] * sign + offset;
           }
         }
       }
@@ -195,9 +196,10 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       UInt orthant = 0;
       UInt parity = 0;
       for (UInt j = 0; j < N; ++j) {
-        parity ^= v[N - j - 1] > 0;
-        orthant |= parity << (N - j - 1);
-        v[N - j - 1] = v[N - j - 1] + ((v[N - j - 1] > 0 ? -1 : 1) << (k - 1));
+        UInt jr = N - j - 1;
+        parity ^= v[jr] > 0;
+        orthant |= parity << (jr);
+        v[jr] += (v[jr] > 0 ? -1 : 1) << (k - 1);
       }
 
       UInt rotate = 1;
@@ -209,16 +211,13 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       }
       rotate = rotate == N ? 0 : rotate;
 
-      UInt original_rotate = rotate;
+      UInt order = rotate;
       for (UInt write = 0; write < N;) {
         for (UInt read = rotate; read < N; ++read) {
           if (rotate == write) {
             rotate = read;
           }
 
-          UInt order = original_rotate + write >= N
-                           ? original_rotate + write - N
-                           : original_rotate + write;
           UInt c = orthant +
                    (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
           UInt sign =
@@ -229,6 +228,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           v[write] = temp;
 
           ++write;
+          order = order + 1 == N ? 0 : order + 1;
         }
       }
 

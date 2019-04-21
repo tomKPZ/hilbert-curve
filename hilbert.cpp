@@ -6,8 +6,8 @@ int main(void) {
   using Int = short;
   using UInt = unsigned int;
 
-  constexpr UInt N = 12;
-  constexpr UInt K = 2;
+  constexpr UInt N = 2;
+  constexpr UInt K = 14;
 
   auto curve = std::make_unique<Int[]>(N << N * K);
   Hilbert<Int, UInt>::Curve<N, K>(curve.get());
