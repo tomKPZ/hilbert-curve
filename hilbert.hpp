@@ -211,6 +211,9 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       }
       rotate = rotate == N ? 0 : rotate;
 
+      UInt gray = ~(((orthant - 1) >> 1) ^ (orthant - 1));
+      Int sign = (orthant == 0 && (rotate == 0 ? N == 1 : rotate == 1)) ||
+                 (orthant + 1) & 2;
       UInt original_rotate = rotate;
       for (UInt order = 0; order < N;) {
         for (UInt old_read = rotate; old_read < N; ++old_read) {
@@ -220,16 +223,12 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           UInt read = (N + old_read - original_rotate) % N;
           UInt write = (N + order - original_rotate) % N;
 
-          UInt c = orthant +
-                   (order == 0 ? 1 : (1 << (order + 2)) - (1 << order) - 1);
-          UInt sign =
-              orthant == 0 && write == N - 1 ? 1 : c & (1 << (order + 1));
-
           Int temp = v[read] * (sign ? 1 : -1);
           v[read] = v[write];
           v[write] = temp;
 
           ++order;
+          sign = gray & (1 << order);
         }
       }
 
