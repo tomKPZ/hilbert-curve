@@ -125,9 +125,9 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
         }
         UInt gray = ~(((i - 1) >> 1) ^ (i - 1));
-        for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
-          UInt write_base = N * ((i << N * (k - 1)) + ip);
-          UInt read_base = N * ip;
+        for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
+          UInt write_base = N * ((i << N * (k - 1)) + p);
+          UInt read_base = N * p;
           Int sign = ((i + 1) & 2) ? 1 : -1;
           for (UInt j = 0; j < N; ++j) {
             UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
@@ -139,12 +139,11 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
         }
       }
 
-      Int offset = -(1 << (k - 1));
-      for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
+      for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
         for (UInt write = 0; write < N; ++write) {
-          Int temp = curve[N * (ip + 1) - 1] + offset;
-          curve[N * (ip + 1) - 1] = curve[N * ip + write];
-          curve[N * ip + write] = temp;
+          Int temp = curve[N * (p + 1) - 1] - (1 << (k - 1));
+          curve[N * (p + 1) - 1] = curve[N * p + write];
+          curve[N * p + write] = temp;
         }
       }
     }
