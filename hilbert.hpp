@@ -130,19 +130,17 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
             UInt c = i + (j == 0 ? 1 : (1 << (j + 2)) - (1 << j) - 1);
             UInt sign = i == 0 && j == 0 ? 1 : c & (1 << (j + 1));
             UInt coord = (i + (1 << j)) & (1 << (j + 1));
-            UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+            Int offset = (coord ? 1 : -1) * (1 << (k - 1));
             curve[N * ((i << N * (k - 1)) + ip) + j] =
                 curve[N * ip + order] * (sign ? 1 : -1) + offset;
           }
         }
       }
 
-      UInt sign = ((1 << (N + 1)) - (1 << (N - 1)) - 1) & (1 << N);
-      UInt coord = (1 << (N - 1)) & (1 << N);
-      UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+      Int offset = -(1 << (k - 1));
       for (UInt ip = 0; ip < 1U << N * (k - 1); ++ip) {
         for (UInt write = 0; write < N; ++write) {
-          Int temp = curve[N * (ip + 1) - 1] * (sign ? 1 : -1) + offset;
+          Int temp = curve[N * (ip + 1) - 1] + offset;
           curve[N * (ip + 1) - 1] = curve[N * ip + write];
           curve[N * ip + write] = temp;
         }
@@ -179,7 +177,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
                    (write == 0 ? 1 : (1 << (write + 2)) - (1 << write) - 1);
           UInt sign = orthant == 0 && write == 0 ? 1 : c & (1 << (write + 1));
           UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
-          UInt offset = (coord ? 1 : -1) * (1 << (k - 1));
+          Int offset = (coord ? 1 : -1) * (1 << (k - 1));
 
           Int temp = v[read] * (sign ? 1 : -1) + offset;
           v[read] = v[write];
