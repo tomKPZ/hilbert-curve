@@ -202,33 +202,35 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
         v[jr] += (v[jr] > 0 ? -1 : 1) << (k - 1);
       }
 
-      UInt rotate = 1;
+      UInt rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
         UInt j = (orthant - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          ++rotate;
+          --rotate;
         }
       }
-      rotate = rotate == N ? 0 : rotate;
 
       UInt gray = ~(((orthant - 1) >> 1) ^ (orthant - 1));
-      Int sign = (orthant == 0 && (rotate == 0 ? N == 1 : rotate == 1)) ||
-                 (orthant + 1) & 2;
-      UInt original_rotate = rotate;
+      Int sign = orthant == 0 || (orthant + 1) & 2 ? 1 : -1;
+      UInt write = rotate;
+      UInt rotate_outer = rotate;
       for (UInt order = 0; order < N;) {
-        for (UInt old_read = rotate; old_read < N; ++old_read) {
-          if (rotate == order) {
-            rotate = old_read;
+        UInt count = rotate == 0 ? N : rotate;
+        UInt read = rotate_outer - rotate;
+        UInt rotate_inner = rotate;
+        for (UInt r = 0; r < count; ++r) {
+          if (rotate == N - order) {
+            rotate = rotate_inner - r;
           }
-          UInt read = (N + old_read - original_rotate) % N;
-          UInt write = (N + order - original_rotate) % N;
 
-          Int temp = v[read] * (sign ? 1 : -1);
+          Int temp = v[read] * sign;
           v[read] = v[write];
           v[write] = temp;
 
           ++order;
-          sign = gray & (1 << order);
+          sign = (gray & (1 << order)) ? 1 : -1;
+          write = write + 1 == N ? 0 : write + 1;
+          read = read + 1 == N ? 0 : read + 1;
         }
       }
 
