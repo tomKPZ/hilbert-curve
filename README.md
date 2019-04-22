@@ -11,6 +11,7 @@
   lines. The functions have also been made non-recursive.
 * *Compile-time evaluation*: All functions are `constexpr`. See
   example usage in `example.cpp`.
+* Functions are also defined for `N = 0` and `K = 0`.
 * *Full git history*: Everything has been left in, no matter how
   embarassing my mistakes may be.
 
@@ -24,8 +25,8 @@ There are 3 functions for manipulating Hilbert curves:
 
 1. `void Curve(UInt N, UInt K, Int curve[])`: Computes the `K`'th step
    of an `N` dimensional Hilbert curve.  The result will be stored in
-   `curve`, which must have space for `2^(N\*K)` `N`-dimensional
-   vectors, for a total of `N\*2^(N*K)` integers.
+   `curve`, which must have space for `2^(N*K)` `N`-dimensional
+   vectors, for a total of `N*2^(N*K)` integers.
 2. `void IToV(UInt N, UInt K, UInt i, Int v[])`: Computes the `i`'th
    vector in `Curve(N, K)`.  The result will be stored in `v`.
    Requires `i < 2^(N*K)`.
