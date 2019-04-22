@@ -1,8 +1,4 @@
-main
 .gdb_history
 hilbert
-mats
-hb
-hb.bak
 callgrind.out.*
 hilbert_test
