@@ -5,10 +5,11 @@
 * *Speed*: Able to compute `Curve()` at `> 1GB/s` (tested on my
   faithful 7 year-old i5-2500K system with `N=2`, `K=15`,
   `Int=int16_t`).
-* *Portability*: All the functions are standalone and should be easily
-  portable to most other languages.
-* *Small code size*: Currently, `Curve()` only has 25 non-empty
-  lines. The functions have also been made non-recursive.
+* *Portability*: All the functions are self-contained (they don't call
+  other functions) and should be easily portable to most other
+  languages.
+* *Small code size*: Currently, `Curve()` only has 25 non-empty lines.
+  The functions have also been made non-recursive.
 * *Compile-time evaluation*: All functions are `constexpr`. See
   example usage in `example.cpp`.
 * No dependencies. Currently the only `include` is for `<cstdint>` to
@@ -126,3 +127,6 @@ make
 ./hilbert_test
 ./example
 ```
+
+A compiler with C++17 support is needed for `constexpr` usage.  If
+`constexpr` is removed, the code should be portable to C++98.
