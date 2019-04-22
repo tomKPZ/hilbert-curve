@@ -1,7 +1,7 @@
 #include "hilbert.hpp"
 
-#include <memory>
 #include <iostream>
+#include <memory>
 
 // Dimension of curve used in examples.
 constexpr int N = 2;
@@ -24,7 +24,7 @@ void BasicCurveExample() {
 // Compute and point the points of the curve one-at-a-time and in
 // reverse.
 void IToVExample() {
-  for (int i = (1 << N * K) - 1; i >0; --i) {
+  for (int i = (1 << N * K) - 1; i > 0; --i) {
     int v[N];
     Hilbert<>::IToV<N, K>(i, v);
     for (int j = 0; j < N; ++j) {

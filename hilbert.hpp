@@ -124,6 +124,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
             --rotate;
           }
         }
+
         UInt gray = ~(((i - 1) >> 1) ^ (i - 1));
         for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
           UInt write_base = N * ((i << N * (k - 1)) + p);
@@ -132,7 +133,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           for (UInt j = 0; j < N; ++j) {
             UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
             UInt coord = (i + (1 << j)) & (1 << (j + 1));
-            Int offset = (coord ? 1 : -1) * (1 << (k - 1));
+            Int offset = (coord ? 1 : -1) * (1U << (k - 1));
             curve[write_base + j] = curve[read_base + order] * sign + offset;
             sign = (gray & (1 << (j + 1))) ? 1 : -1;
           }

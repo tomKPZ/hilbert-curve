@@ -13,7 +13,7 @@ template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
   f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
   auto curve = std::make_unique<int[]>(N << N * K);
   Hilbert<>::Curve(N, K, curve.get());
-  for (std::size_t i = 0; i < 1 << (N * K); i++) {
+  for (std::size_t i = 0; i < 1U << (N * K); i++) {
     int center[N];
     Hilbert<>::IToV(N, K, i, center);
     assert(std::equal(center, center + N, curve.get() + N * i));
