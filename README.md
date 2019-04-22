@@ -11,6 +11,8 @@
   lines. The functions have also been made non-recursive.
 * *Compile-time evaluation*: All functions are `constexpr`. See
   example usage in `example.cpp`.
+* No dependencies. Currently the only `include` is for `<cstdint>` to
+  set the default argument of `UInt` to `std::size_t`.
 * Functions are also defined for `N = 0` and `K = 0`.
 * *Full git history*: Everything has been left in, no matter how
   embarassing my mistakes may be.
