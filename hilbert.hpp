@@ -199,7 +199,6 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
         UInt jr = N - j - 1;
         parity ^= v[jr] > 0;
         orthant |= parity << jr;
-        v[jr] += (v[jr] > 0 ? -1 : 1) << (k - 1);
       }
 
       UInt rotate = N - 1;
@@ -223,9 +222,10 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
             rotate = rotate_inner - r;
           }
 
-          Int temp = v[read] * sign;
+          Int temp = v[read];
+          temp += (temp > 0 ? -1 : 1) * (1 << (k - 1));
           v[read] = v[write];
-          v[write] = temp;
+          v[write] = temp * sign;
 
           ++order;
           sign = (gray & (1 << order)) ? 1 : -1;
