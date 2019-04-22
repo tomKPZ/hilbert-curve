@@ -18,10 +18,20 @@
 #include "hilbert.hpp"
 
 #include <algorithm>
-#include <cassert>
 #include <fstream>
+#include <iostream>
 #include <iterator>
 #include <memory>
+
+template <typename T> T& check_aux(T&& t, const char* message) {
+  if (!t) {
+    std::cerr << "CHECK failed: " << message << std::endl;
+    std::abort();
+  }
+  return t;
+}
+
+#define CHECK(x) check_aux(x, #x)
 
 template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
   std::string fname =
@@ -33,21 +43,21 @@ template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
     int center[N];
     Hilbert<>::IToV(N, K, i, center);
-    assert(std::equal(center, center + N, curve.get() + N * i));
+    CHECK(std::equal(center, center + N, curve.get() + N * i));
 
     int copy[N];
     std::copy(curve.get() + N * i, curve.get() + N * (i + 1), copy);
     auto i2 = Hilbert<>::VToI(N, K, copy);
-    assert(i == i2);
+    CHECK(i == i2);
     for (int x : copy) {
-      assert(x == 0);
+      CHECK(x == 0);
     }
 
     int offset[N];
     Hilbert<>::OffsetV(N, K, curve.get() + N * i, offset);
     int recenter[N];
     Hilbert<>::CenterV(N, K, offset, recenter);
-    assert(std::equal(recenter, recenter + N, curve.get() + N * i));
+    CHECK(std::equal(recenter, recenter + N, curve.get() + N * i));
 
     for (int x : offset) {
       uint8_t bytes[2];
@@ -57,13 +67,13 @@ template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
         f.write(reinterpret_cast<const char*>(bytes), sizeof(bytes));
       } else {
         f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
-        assert(f);
-        assert(x == (bytes[0] << 8) + bytes[1]);
+        CHECK(f);
+        CHECK(x == (bytes[0] << 8) + bytes[1]);
       }
     }
   }
   if constexpr (!Write) {
-    assert(f.peek() == EOF);
+    CHECK(f.peek() == EOF);
   }
 }
 
