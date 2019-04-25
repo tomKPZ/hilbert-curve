@@ -33,11 +33,11 @@ template <typename T> T& check_aux(T&& t, const char* message) {
 
 #define CHECK(x) check_aux(x, #x)
 
-template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
+void RunTest(std::size_t N, std::size_t K) {
   std::string fname =
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
-  f.open(fname, std::ios::binary | (Write ? std::ios::out : std::ios::in));
+  f.open(fname, std::ios::binary | std::ios::in);
   auto curve = std::make_unique<int[]>(N << N * K);
   Hilbert<>::Curve(N, K, curve.get());
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
@@ -61,20 +61,12 @@ template <bool Write = false> void OpTestData(std::size_t N, std::size_t K) {
 
     for (int x : offset) {
       uint8_t bytes[2];
-      if constexpr (Write) {
-        bytes[0] = (x & 0xff00) >> 8;
-        bytes[1] = x & 0xff;
-        f.write(reinterpret_cast<const char*>(bytes), sizeof(bytes));
-      } else {
-        f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
-        CHECK(f);
-        CHECK(x == (bytes[0] << 8) + bytes[1]);
-      }
+      f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
+      CHECK(f);
+      CHECK(x == (bytes[0] << 8) + bytes[1]);
     }
   }
-  if constexpr (!Write) {
-    CHECK(f.peek() == EOF);
-  }
+  CHECK(f.peek() == EOF);
 }
 
 int main() {
@@ -89,7 +81,7 @@ int main() {
   };
 
   for (const auto& test : tests) {
-    OpTestData(test.N, test.K);
+    RunTest(test.N, test.K);
   }
 
   return 0;
