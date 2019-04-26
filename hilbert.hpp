@@ -96,19 +96,19 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
         }
 
-        UInt gray = ~(((i - 1) >> 1) ^ (i - 1));
+        UInt gray = ((i - 1) >> 1) ^ (i - 1);
         for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
           UInt write_base = N * ((i << N * (k - 1)) + p);
           UInt read_base = N * p;
-          UInt not_reflect = (i + 1) & 2;
+          UInt reflect = !((i + 1) & 2);
           for (UInt j = 0; j < N; ++j) {
             UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
             UInt coord = (i + (1 << j)) & (1 << (j + 1));
             Int offset = coord ? (1U << (k - 1)) : 0;
             Int temp = curve[read_base + order];
-            temp = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
+            temp = reflect ? (1U << (k - 1)) - temp - 1 : temp;
             curve[write_base + j] = temp + offset;
-            not_reflect = gray & (1 << (j + 1));
+            reflect = gray & (1 << (j + 1));
           }
         }
       }
@@ -142,8 +142,8 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
         }
       }
 
-      UInt gray = ~(((orthant - 1) >> 1) ^ (orthant - 1));
-      UInt not_reflect = orthant == 0 || (orthant + 1) & 2;
+      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+      UInt reflect = !(orthant == 0 || (orthant + 1) & 2);
       for (UInt write = 0; write < N;) {
         for (UInt read = rotate; read < N; ++read) {
           if (rotate == write) {
@@ -154,12 +154,12 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           Int offset = coord ? 1 << (k - 1) : 0;
 
           Int temp = v[read];
-          temp = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
+          temp = reflect ? (1U << (k - 1)) - temp - 1 : temp;
           v[read] = v[write];
           v[write] = temp + offset;
 
           ++write;
-          not_reflect = gray & (1 << write);
+          reflect = gray & (1 << write);
         }
       }
     }
@@ -184,8 +184,8 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
         }
       }
 
-      UInt gray = ~(((orthant - 1) >> 1) ^ (orthant - 1));
-      UInt not_reflect = orthant == 0 || (orthant + 1) & 2;
+      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+      UInt reflect = !(orthant == 0 || (orthant + 1) & 2);
       UInt write = rotate;
       UInt rotate_outer = rotate;
       for (UInt order = 0; order < N;) {
@@ -200,10 +200,10 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           Int temp = v[read];
           temp = temp >= (1 << (k - 1)) ? temp - (1 << (k - 1)) : temp;
           v[read] = v[write];
-          v[write] = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
+          v[write] = reflect ? (1U << (k - 1)) - temp - 1 : temp;
 
           ++order;
-          not_reflect = gray & (1 << order);
+          reflect = gray & (1 << order);
           write = write + 1 == N ? 0 : write + 1;
           read = read + 1 == N ? 0 : read + 1;
         }
