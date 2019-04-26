@@ -8,7 +8,7 @@
 * *Portability*: All the functions are self-contained (they don't call
   other functions) and should be easily portable to most other
   languages.
-* *Small code size*: Currently, `Curve()` only has 25 non-empty lines.
+* *Small code size*: Currently, `Curve()` only has 27 non-empty lines.
   The functions have also been made non-recursive.
 * *Compile-time evaluation*: All functions are `constexpr`. See
   example usage in `example.cpp`.
@@ -88,7 +88,7 @@ non-templated versions.
 The `Hilbert` class itself has two template parameters: `Int` and
 `UInt` which are defaulted to `int` and `std::size_t`. If you know
 that `K` is small, you can use a narrower integer like `int16_t` if `K
-< 16` or `int8_t` if `K < 8`. This will also increase performance of
+<= 16` or `int8_t` if `K <= 8`. This will also increase performance of
 `Curve()` since it's mostly limited by memory.
 
 It's recommended to leave `UInt` set to `std::size_t`. Some day I may
