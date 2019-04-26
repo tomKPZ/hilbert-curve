@@ -38,23 +38,6 @@ There are 3 functions for manipulating Hilbert curves:
    Behavior is undefined if `v` is not a point on the curve.  `v` will
    be zeroed when this function returns.
 
-`Curve()`, `IToV()`, and `VToI()` all operate on Hilbert curves
-centered at the origin with points separated a distance of 2.  For
-example, the 2nd iteration of a 1D Hilbert curve would have points at
-`[{-3}, {-1}, {1}, {3}]`.  This data may be more useful based at 0
-with a distance 1 between points.  In this format, the curve would
-have points at `[{0}, {1}, {2}, {3}]`.  `OffsetV()` and `CenterV()`
-converts between these formats.
-
-1. `void OffsetV(UInt N, UInt K, const Int cv[], Int ov[])`: Scales
-   `cv` down by a factor of 2 and shifts it to lie in the first
-   orthant.  Stores the result in `ov`.  `cv` may point to the same
-   vector as `ov`.
-2. `void CenterV(UInt N, UInt K, const Int ov[], Int cv[])`: Shifts
-   `ov` to be centered at the origin and scales it up by a factor
-   of 2.  Stores the result in `cv`.  `ov` may point to the same
-   vector as `cv`.
-
 ### Calling the functions
 
 The above functions live in a static class called `Hilbert`. To call

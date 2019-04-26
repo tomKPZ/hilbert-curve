@@ -77,25 +77,6 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     return VToIImpl(N, K, v);
   }
 
-  // Shifts ov to be centered at the origin and scales it up by a
-  // factor of 2.  Stores the result in cv.  ov may point to the same
-  // vector as cv.
-  static constexpr void CenterV(UInt N, UInt K, const Int ov[], Int cv[]) {
-    CenterVImpl(N, K, ov, cv);
-  }
-  template <UInt N>
-  static constexpr void CenterVN(UInt K, const Int ov[], Int cv[]) {
-    CenterVImpl(N, K, ov, cv);
-  }
-  template <UInt K>
-  static constexpr void CenterVK(UInt N, const Int ov[], Int cv[]) {
-    CenterVImpl(N, K, ov, cv);
-  }
-  template <UInt N, UInt K>
-  static constexpr void CenterV(const Int ov[], Int cv[]) {
-    CenterVImpl(N, K, ov, cv);
-  }
-
  private:
   Hilbert() = delete;
 
@@ -125,7 +106,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
             UInt coord = (i + (1 << j)) & (1 << (j + 1));
             Int offset = coord ? (1U << (k - 1)) : 0;
             Int temp = curve[read_base + order];
-	    temp = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
+            temp = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
             curve[write_base + j] = temp + offset;
             not_reflect = gray & (1 << (j + 1));
           }
@@ -170,9 +151,9 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
 
           UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
-	  Int offset = coord ? 1 << (k - 1) : 0;
+          Int offset = coord ? 1 << (k - 1) : 0;
 
-	  Int temp = v[read];
+          Int temp = v[read];
           temp = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
           v[read] = v[write];
           v[write] = temp + offset;
@@ -191,7 +172,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       UInt parity = 0;
       for (UInt j = 0; j < N; ++j) {
         UInt jr = N - j - 1;
-        parity ^= v[jr] > 0;
+        parity ^= v[jr] >= (1 << (k - 1));
         orthant |= parity << jr;
       }
 
@@ -204,7 +185,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       }
 
       UInt gray = ~(((orthant - 1) >> 1) ^ (orthant - 1));
-      Int sign = orthant == 0 || (orthant + 1) & 2 ? 1 : -1;
+      UInt not_reflect = orthant == 0 || (orthant + 1) & 2;
       UInt write = rotate;
       UInt rotate_outer = rotate;
       for (UInt order = 0; order < N;) {
@@ -217,12 +198,12 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
 
           Int temp = v[read];
-          temp += (temp > 0 ? -1 : 1) * (1 << (k - 1));
+          temp = temp >= (1 << (k - 1)) ? temp - (1 << (k - 1)) : temp;
           v[read] = v[write];
-          v[write] = temp * sign;
+          v[write] = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
 
           ++order;
-          sign = (gray & (1 << order)) ? 1 : -1;
+          not_reflect = gray & (1 << order);
           write = write + 1 == N ? 0 : write + 1;
           read = read + 1 == N ? 0 : read + 1;
         }
@@ -231,24 +212,6 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       i += orthant << N * (k - 1);
     }
     return i;
-  }
-
-  HB_ALWAYS_INLINE static constexpr void OffsetVImpl(UInt N,
-                                                     UInt K,
-                                                     const Int cv[],
-                                                     Int ov[]) {
-    for (UInt i = 0; i < N; ++i) {
-      ov[i] = (cv[i] + (1 << K)) >> 1;
-    }
-  }
-
-  HB_ALWAYS_INLINE static constexpr void CenterVImpl(UInt N,
-                                                     UInt K,
-                                                     const Int ov[],
-                                                     Int cv[]) {
-    for (UInt i = 0; i < N; ++i) {
-      cv[i] = ov[i] * 2 - (1 << K) + 1;
-    }
   }
 };
 

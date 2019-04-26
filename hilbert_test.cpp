@@ -55,9 +55,7 @@ void RunTest(std::size_t N, std::size_t K) {
     Hilbert<>::IToV(N, K, i, v);
     CHECK(std::equal(v, v + N, curve.get() + N * i));
 
-    Hilbert<>::CenterV(N, K, v, v);
-    auto i2 = Hilbert<>::VToI(N, K, v);
-    CHECK(i == i2);
+    CHECK(i == Hilbert<>::VToI(N, K, v));
     for (int x : v) {
       CHECK(x == 0);
     }

@@ -53,11 +53,10 @@ void IToVExample() {
 
 // Compute the indices that points would have given their coordinates.
 // Example limited to 2D for now.
-void VToIAndCenterVExample() {
+void VToIExample() {
   for (int v0 = 0; v0 < 1 << K; v0++) {
     for (int v1 = 0; v1 < 1 << K; v1++) {
       int v[2] = {v0, v1};
-      Hilbert<>::CenterV<2, K>(v, v);
       auto i = Hilbert<>::VToI<2, K>(v);
       std::cout << '(' << v0 << ",\t" << v1 << "):\t" << i << std::endl;
     }
@@ -89,8 +88,8 @@ int main(void) {
   std::cout << "IToVExample" << std::endl;
   IToVExample();
 
-  std::cout << "VToIAndCenterVExample" << std::endl;
-  VToIAndCenterVExample();
+  std::cout << "VToIExample" << std::endl;
+  VToIExample();
 
   std::cout << "ConstexprCurveExample" << std::endl;
   ConstexprCurveExample();
