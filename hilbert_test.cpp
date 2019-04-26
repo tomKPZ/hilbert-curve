@@ -53,7 +53,6 @@ void RunTest(std::size_t N, std::size_t K) {
 
     int v[N];
     Hilbert<>::IToV(N, K, i, v);
-    Hilbert<>::OffsetV(N, K, v, v);
     CHECK(std::equal(v, v + N, curve.get() + N * i));
 
     Hilbert<>::CenterV(N, K, v, v);

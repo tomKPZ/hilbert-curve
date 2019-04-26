@@ -51,20 +51,6 @@ void IToVExample() {
   }
 }
 
-// The same as BasicCurveExample(), except offsets the points before
-// printing them.
-void OffsetVExample() {
-  int curve[1 << N * K][N];
-  Hilbert<>::Curve<N, K>(curve[0]);
-  for (int i = 0; i < 1 << N * K; ++i) {
-    Hilbert<>::OffsetV<N, K>(curve[i], curve[i]);
-    for (int j = 0; j < N; ++j) {
-      std::cout << curve[i][j] << '\t';
-    }
-    std::cout << std::endl;
-  }
-}
-
 // Compute the indices that points would have given their coordinates.
 // Example limited to 2D for now.
 void VToIAndCenterVExample() {
@@ -102,9 +88,6 @@ int main(void) {
 
   std::cout << "IToVExample" << std::endl;
   IToVExample();
-
-  std::cout << "OffsetVExample" << std::endl;
-  OffsetVExample();
 
   std::cout << "VToIAndCenterVExample" << std::endl;
   VToIAndCenterVExample();

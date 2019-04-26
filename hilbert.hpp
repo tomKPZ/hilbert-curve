@@ -77,33 +77,6 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
     return VToIImpl(N, K, v);
   }
 
-  // Curve(), IToV(), and VToI() all operate on Hilbert curves
-  // centered at the origin with points separated a distance of 2.
-  // For example, the 2nd iteration of a 1D Hilbert curve would have
-  // points at [{-3}, {-1}, {1}, {3}].  This data may be more useful
-  // based at 0 with a distance 1 between points.  In this format, the
-  // curve would have points at [{0}, {1}, {2}, {3}].  OffsetV() and
-  // CenterV() converts between these formats.
-
-  // Scales cv down by a factor of 2 and shifts it to lie in the first
-  // orthant.  Stores the result in ov.  cv may point to the same
-  // vector as ov.
-  static constexpr void OffsetV(UInt N, UInt K, const Int cv[], Int ov[]) {
-    OffsetVImpl(N, K, cv, ov);
-  }
-  template <UInt N>
-  static constexpr void OffsetVN(UInt K, const Int cv[], Int ov[]) {
-    OffsetVImpl(N, K, cv, ov);
-  }
-  template <UInt K>
-  static constexpr void OffsetVK(UInt N, const Int cv[], Int ov[]) {
-    OffsetVImpl(N, K, cv, ov);
-  }
-  template <UInt N, UInt K>
-  static constexpr void OffsetV(const Int cv[], Int ov[]) {
-    OffsetVImpl(N, K, cv, ov);
-  }
-
   // Shifts ov to be centered at the origin and scales it up by a
   // factor of 2.  Stores the result in cv.  ov may point to the same
   // vector as cv.
@@ -189,7 +162,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       }
 
       UInt gray = ~(((orthant - 1) >> 1) ^ (orthant - 1));
-      Int sign = orthant == 0 || (orthant + 1) & 2 ? 1 : -1;
+      UInt not_reflect = orthant == 0 || (orthant + 1) & 2;
       for (UInt write = 0; write < N;) {
         for (UInt read = rotate; read < N; ++read) {
           if (rotate == write) {
@@ -197,14 +170,15 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
 
           UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
-          Int offset = (coord ? 1 : -1) * (1 << (k - 1));
+	  Int offset = coord ? 1 << (k - 1) : 0;
 
-          Int temp = v[read] * sign + offset;
+	  Int temp = v[read];
+          temp = not_reflect ? temp : (1U << (k - 1)) - temp - 1;
           v[read] = v[write];
-          v[write] = temp;
+          v[write] = temp + offset;
 
           ++write;
-          sign = (gray & (1 << write)) ? 1 : -1;
+          not_reflect = gray & (1 << write);
         }
       }
     }
