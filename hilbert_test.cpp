@@ -23,15 +23,17 @@
 #include <iterator>
 #include <memory>
 
-template <typename T> T& check_aux(T&& t, const char* message) {
+template <typename T>
+T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
   if (!t) {
-    std::cerr << "CHECK failed: " << message << std::endl;
+    std::cerr << "CHECK failed: " << file << ':' << line << ": " << message
+              << std::endl;
     std::abort();
   }
   return t;
 }
 
-#define CHECK(x) check_aux(x, #x)
+#define CHECK(x) check_aux(x, __FILE__, __LINE__, #x)
 
 void RunTest(std::size_t N, std::size_t K) {
   std::string fname =
@@ -41,29 +43,24 @@ void RunTest(std::size_t N, std::size_t K) {
   auto curve = std::make_unique<int[]>(N << N * K);
   Hilbert<>::Curve(N, K, curve.get());
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
-    int center[N];
-    Hilbert<>::IToV(N, K, i, center);
-    CHECK(std::equal(center, center + N, curve.get() + N * i));
-
-    int copy[N];
-    std::copy(curve.get() + N * i, curve.get() + N * (i + 1), copy);
-    auto i2 = Hilbert<>::VToI(N, K, copy);
-    CHECK(i == i2);
-    for (int x : copy) {
-      CHECK(x == 0);
-    }
-
-    int offset[N];
-    Hilbert<>::OffsetV(N, K, curve.get() + N * i, offset);
-    int recenter[N];
-    Hilbert<>::CenterV(N, K, offset, recenter);
-    CHECK(std::equal(recenter, recenter + N, curve.get() + N * i));
-
-    for (int x : offset) {
+    for (std::size_t j = 0; j < N; j++) {
+      int x = curve[N * i + j];
       uint8_t bytes[2];
       f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
       CHECK(f);
       CHECK(x == (bytes[0] << 8) + bytes[1]);
+    }
+
+    int v[N];
+    Hilbert<>::IToV(N, K, i, v);
+    Hilbert<>::OffsetV(N, K, v, v);
+    CHECK(std::equal(v, v + N, curve.get() + N * i));
+
+    Hilbert<>::CenterV(N, K, v, v);
+    auto i2 = Hilbert<>::VToI(N, K, v);
+    CHECK(i == i2);
+    for (int x : v) {
+      CHECK(x == 0);
     }
   }
   CHECK(f.peek() == EOF);
