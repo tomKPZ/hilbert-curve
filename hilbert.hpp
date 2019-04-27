@@ -188,10 +188,9 @@ class Hilbert {
     for (std::size_t k = K; k > 0; --k) {
       UInt orthant = 0;
       bool parity = 0;
-      for (std::size_t j = 0; j < N; ++j) {
-        std::size_t jr = N - j - 1;
-        parity ^= v[jr] >= (1U << (k - 1));
-        orthant |= parity << jr;
+      for (std::size_t j = N; j-- > 0;) {
+        parity ^= v[j] >= (1U << (k - 1));
+        orthant |= parity << j;
       }
 
       std::size_t rotate = N - 1;
