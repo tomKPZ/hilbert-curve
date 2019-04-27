@@ -34,77 +34,83 @@ class Hilbert {
   // Computes the K'th step of an N dimensional Hilbert curve.  The
   // result will be stored in curve, which must have space for 2^(N*K)
   // N-dimensional vectors, for a total of N*2^(N*K) integers.
-  static constexpr void Curve(UInt N, UInt K, Int curve[]) {
+  static constexpr void Curve(std::size_t N, std::size_t K, Int curve[]) {
     CurveImpl(N, K, curve);
   }
-  template <UInt N> static constexpr void CurveN(UInt K, Int curve[]) {
+  template <std::size_t N>
+  static constexpr void CurveN(std::size_t K, Int curve[]) {
     CurveImpl(N, K, curve);
   }
-  template <UInt K> static constexpr void CurveK(UInt N, Int curve[]) {
+  template <std::size_t K>
+  static constexpr void CurveK(std::size_t N, Int curve[]) {
     CurveImpl(N, K, curve);
   }
-  template <UInt N, UInt K> static constexpr void Curve(Int curve[]) {
+  template <std::size_t N, std::size_t K>
+  static constexpr void Curve(Int curve[]) {
     CurveImpl(N, K, curve);
   }
 
   // Computes the i'th vector in Curve(N, K).  The result will be
   // stored in v.  Requires i < 2^(N*K).
-  static constexpr void IToV(UInt N, UInt K, UInt i, Int v[]) {
+  static constexpr void IToV(std::size_t N, std::size_t K, UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <UInt N> static constexpr void IToVN(UInt K, UInt i, Int v[]) {
+  template <std::size_t N>
+  static constexpr void IToVN(std::size_t K, UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <UInt K> static constexpr void IToVK(UInt N, UInt i, Int v[]) {
+  template <std::size_t K>
+  static constexpr void IToVK(std::size_t N, UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <UInt N, UInt K> static constexpr void IToV(UInt i, Int v[]) {
+  template <std::size_t N, std::size_t K>
+  static constexpr void IToV(UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
   }
 
   // Computes the index that v would have in the K'th step of an N
   // dimensional Hilbert curve.  Behavior is undefined if v is not a
   // point on the curve.  v will be zeroed when this function returns.
-  static constexpr UInt VToI(UInt N, UInt K, Int v[]) {
+  static constexpr UInt VToI(std::size_t N, std::size_t K, Int v[]) {
     return VToIImpl(N, K, v);
   }
-  template <UInt N> static constexpr UInt VToIN(UInt K, Int v[]) {
+  template <std::size_t N> static constexpr UInt VToIN(std::size_t K, Int v[]) {
     return VToIImpl(N, K, v);
   }
-  template <UInt K> static constexpr UInt VToIK(UInt N, Int v[]) {
+  template <std::size_t K> static constexpr UInt VToIK(std::size_t N, Int v[]) {
     return VToIImpl(N, K, v);
   }
-  template <UInt N, UInt K> static constexpr UInt VToI(Int v[]) {
+  template <std::size_t N, std::size_t K> static constexpr UInt VToI(Int v[]) {
     return VToIImpl(N, K, v);
   }
 
  private:
   Hilbert() = delete;
 
-  HB_ALWAYS_INLINE static constexpr void CurveImpl(UInt N,
-                                                   UInt K,
+  HB_ALWAYS_INLINE static constexpr void CurveImpl(std::size_t N,
+                                                   std::size_t K,
                                                    Int curve[]) {
-    for (UInt i = 0; i < N; ++i) {
+    for (std::size_t i = 0; i < N; ++i) {
       curve[i] = 0;
     }
-    for (UInt k = 1; k <= K; ++k) {
-      for (UInt i = 1; i < (1U << N); ++i) {
-        UInt rotate = N - 1;
+    for (std::size_t k = 1; k <= K; ++k) {
+      for (std::size_t i = 1; i < (1U << N); ++i) {
+        std::size_t rotate = N - 1;
         if (i != (1U << N) - 1) {
-          UInt j = (i - 1) >> 1;
-          for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          std::size_t j = (i - 1) >> 1;
+          for (std::size_t bits = ~j & (j + 1); bits != 0; bits >>= 1) {
             --rotate;
           }
         }
 
-        UInt gray = ((i - 1) >> 1) ^ (i - 1);
-        for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
-          UInt write_base = N * ((i << N * (k - 1)) + p);
-          UInt read_base = N * p;
-          UInt reflect = !((i + 1) & 2);
-          for (UInt j = 0; j < N; ++j) {
-            UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
-            UInt coord = (i + (1U << j)) & (1U << (j + 1));
+        std::size_t gray = ((i - 1) >> 1) ^ (i - 1);
+        for (std::size_t p = 0; p < 1U << N * (k - 1); ++p) {
+          std::size_t write_base = N * ((i << N * (k - 1)) + p);
+          std::size_t read_base = N * p;
+          bool reflect = !((i + 1) & 2);
+          for (std::size_t j = 0; j < N; ++j) {
+            std::size_t order = rotate + j >= N ? rotate + j - N : rotate + j;
+            std::size_t coord = (i + (1U << j)) & (1U << (j + 1));
             Int offset = coord ? (1U << (k - 1)) : 0;
             Int temp = curve[read_base + order];
             temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
@@ -115,9 +121,9 @@ class Hilbert {
       }
 
       if (N > 0) {
-        for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
+        for (std::size_t p = 0; p < 1U << N * (k - 1); ++p) {
           Int temp = curve[N * (p + 1) - 1];
-          for (UInt i = N - 1; i > 0; --i) {
+          for (std::size_t i = N - 1; i > 0; --i) {
             curve[N * p + i] = curve[N * p + i - 1];
           }
           curve[N * p] = temp;
@@ -126,18 +132,18 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr void IToVImpl(UInt N,
-                                                  UInt K,
+  HB_ALWAYS_INLINE static constexpr void IToVImpl(std::size_t N,
+                                                  std::size_t K,
                                                   UInt i,
                                                   Int v[]) {
-    for (UInt j = 0; j < N; ++j) {
+    for (std::size_t j = 0; j < N; ++j) {
       v[j] = 0;
     }
-    for (UInt k = 1; k <= K; ++k) {
+    for (std::size_t k = 1; k <= K; ++k) {
       UInt orthant_i = i & ((1U << N * k) - 1);
       UInt orthant = orthant_i >> (N * (k - 1));
 
-      UInt rotate = N - 1;
+      std::size_t rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
         UInt j = (orthant - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
@@ -146,14 +152,14 @@ class Hilbert {
       }
 
       UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
-      UInt reflect = !(orthant == 0 || (orthant + 1) & 2);
-      for (UInt write = 0; write < N;) {
-        for (UInt read = rotate; read < N; ++read) {
+      bool reflect = !(orthant == 0 || (orthant + 1) & 2);
+      for (std::size_t write = 0; write < N;) {
+        for (std::size_t read = rotate; read < N; ++read) {
           if (rotate == write) {
             rotate = read;
           }
 
-          UInt coord = (orthant + (1U << write)) & (1U << (write + 1));
+          bool coord = (orthant + (1U << write)) & (1U << (write + 1));
           Int offset = coord ? 1U << (k - 1) : 0;
 
           Int temp = v[read];
@@ -168,18 +174,20 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr UInt VToIImpl(UInt N, UInt K, Int v[]) {
+  HB_ALWAYS_INLINE static constexpr UInt VToIImpl(std::size_t N,
+                                                  std::size_t K,
+                                                  Int v[]) {
     UInt i = 0;
-    for (UInt k = K; k > 0; --k) {
+    for (std::size_t k = K; k > 0; --k) {
       UInt orthant = 0;
-      UInt parity = 0;
-      for (UInt j = 0; j < N; ++j) {
-        UInt jr = N - j - 1;
+      bool parity = 0;
+      for (std::size_t j = 0; j < N; ++j) {
+        std::size_t jr = N - j - 1;
         parity ^= v[jr] >= (1U << (k - 1));
         orthant |= parity << jr;
       }
 
-      UInt rotate = N - 1;
+      std::size_t rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
         UInt j = (orthant - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
@@ -188,14 +196,14 @@ class Hilbert {
       }
 
       UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
-      UInt reflect = !(orthant == 0 || (orthant + 1) & 2);
-      UInt write = rotate;
-      UInt rotate_outer = rotate;
-      for (UInt order = 0; order < N;) {
-        UInt count = rotate == 0 ? N : rotate;
-        UInt read = rotate_outer - rotate;
-        UInt rotate_inner = rotate;
-        for (UInt r = 0; r < count; ++r) {
+      bool reflect = !(orthant == 0 || (orthant + 1) & 2);
+      std::size_t write = rotate;
+      std::size_t rotate_outer = rotate;
+      for (std::size_t order = 0; order < N;) {
+        std::size_t count = rotate == 0 ? N : rotate;
+        std::size_t read = rotate_outer - rotate;
+        std::size_t rotate_inner = rotate;
+        for (std::size_t r = 0; r < count; ++r) {
           if (rotate == N - order) {
             rotate = rotate_inner - r;
           }
