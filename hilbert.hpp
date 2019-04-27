@@ -93,6 +93,9 @@ class Hilbert {
     for (std::size_t i = 0; i < N; ++i) {
       curve[i] = 0;
     }
+    if (N == 0 || K == 0) {
+      return;
+    }
     for (std::size_t k = 1; k <= K; ++k) {
       for (std::size_t i = 1; i < (1U << N); ++i) {
         std::size_t rotate = N - 1;
@@ -120,14 +123,12 @@ class Hilbert {
         }
       }
 
-      if (N > 0) {
-        for (std::size_t p = 0; p < 1U << N * (k - 1); ++p) {
-          Int temp = curve[N * (p + 1) - 1];
-          for (std::size_t i = N - 1; i > 0; --i) {
-            curve[N * p + i] = curve[N * p + i - 1];
-          }
-          curve[N * p] = temp;
+      for (std::size_t p = 0; p < 1U << N * (k - 1); ++p) {
+        Int temp = curve[N * (p + 1) - 1];
+        for (std::size_t i = N - 1; i > 0; --i) {
+          curve[N * p + i] = curve[N * p + i - 1];
         }
+        curve[N * p] = temp;
       }
     }
   }
@@ -138,6 +139,9 @@ class Hilbert {
                                                   Int v[]) {
     for (std::size_t j = 0; j < N; ++j) {
       v[j] = 0;
+    }
+    if (N == 0 || K == 0) {
+      return;
     }
     for (std::size_t k = 1; k <= K; ++k) {
       UInt orthant_i = i & ((1U << N * k) - 1);
@@ -178,6 +182,9 @@ class Hilbert {
                                                   std::size_t K,
                                                   Int v[]) {
     UInt i = 0;
+    if (N == 0 || K == 0) {
+      return i;
+    }
     for (std::size_t k = K; k > 0; --k) {
       UInt orthant = 0;
       bool parity = 0;
