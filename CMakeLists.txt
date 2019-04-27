@@ -24,8 +24,10 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   add_compile_options(-Ofast -march=native -mtune=native)
 endif()
 
+add_executable(benchmark benchmark.cpp)
 add_executable(example example.cpp)
 add_executable(hilbert_test hilbert_test.cpp)
 
+set_target_properties(benchmark PROPERTIES CXX_STANDARD 17)
 set_target_properties(example PROPERTIES CXX_STANDARD 17)
 set_target_properties(hilbert_test PROPERTIES CXX_STANDARD 17)

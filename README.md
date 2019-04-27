@@ -2,9 +2,8 @@
 
 ## Features
 
-* *Speed*: Able to compute `Curve()` at `> 1GB/s` (tested on my
-  faithful 7 year-old i5-2500K system with `N=2`, `K=15`,
-  `Int=uint16_t`).
+* *Speed*: Able to compute `Curve()` at `2.93 GiB/s` (ran `benchmark`
+  on my faithful 7 year-old i5-2500K system).
 * *Portability*: All the functions are self-contained (they don't call
   other functions) and should be easily portable to most other
   languages.
@@ -12,8 +11,8 @@
   The functions have also been made non-recursive.
 * *Compile-time evaluation*: All functions are `constexpr`. See
   example usage in `example.cpp`.
-* No dependencies. Currently the only `include` is for `<cstdint>` to
-  set the default argument of `UInt` to `std::size_t`.
+* No dependencies. Currently the only `include` is for `<cstdint>` for
+  `std::size_t`.
 * Functions are also defined for `N = 0` and `K = 0`.
 * *Full git history*: Everything has been left in, no matter how
   embarassing my mistakes may be.
