@@ -3,7 +3,8 @@
 ## Features
 
 * *Speed*: Able to compute `Curve()` at `2.93 GiB/s` (ran `benchmark`
-  on my faithful 7 year-old i5-2500K system).
+  in `Release` mode with `clang` on my faithful 7 year-old i5-2500K
+  system).
 * *Portability*: All the functions are self-contained (they don't call
   other functions) and should be easily portable to most other
   languages.
