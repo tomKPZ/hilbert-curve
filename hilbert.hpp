@@ -113,11 +113,13 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
         }
       }
 
-      for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
-        for (UInt write = 0; write < N; ++write) {
+      if (N > 0) {
+        for (UInt p = 0; p < 1U << N * (k - 1); ++p) {
           Int temp = curve[N * (p + 1) - 1];
-          curve[N * (p + 1) - 1] = curve[N * p + write];
-          curve[N * p + write] = temp;
+          for (UInt i = N - 1; i > 0; --i) {
+            curve[N * p + i] = curve[N * p + i - 1];
+          }
+          curve[N * p] = temp;
         }
       }
     }

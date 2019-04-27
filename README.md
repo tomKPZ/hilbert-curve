@@ -8,7 +8,7 @@
 * *Portability*: All the functions are self-contained (they don't call
   other functions) and should be easily portable to most other
   languages.
-* *Small code size*: Currently, `Curve()` only has 27 non-empty lines.
+* *Small code size*: Currently, `Curve()` only has 28 non-empty lines.
   The functions have also been made non-recursive.
 * *Compile-time evaluation*: All functions are `constexpr`. See
   example usage in `example.cpp`.
