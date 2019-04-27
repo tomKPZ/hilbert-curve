@@ -106,7 +106,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
             UInt coord = (i + (1 << j)) & (1 << (j + 1));
             Int offset = coord ? (1U << (k - 1)) : 0;
             Int temp = curve[read_base + order];
-            temp = reflect ? (1U << (k - 1)) - temp - 1 : temp;
+            temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
             curve[write_base + j] = temp + offset;
             reflect = gray & (1 << (j + 1));
           }
@@ -156,7 +156,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           Int offset = coord ? 1 << (k - 1) : 0;
 
           Int temp = v[read];
-          temp = reflect ? (1U << (k - 1)) - temp - 1 : temp;
+          temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
           v[read] = v[write];
           v[write] = temp + offset;
 
@@ -202,7 +202,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           Int temp = v[read];
           temp = temp >= (1 << (k - 1)) ? temp - (1 << (k - 1)) : temp;
           v[read] = v[write];
-          v[write] = reflect ? (1U << (k - 1)) - temp - 1 : temp;
+          v[write] = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
 
           ++order;
           reflect = gray & (1 << order);
