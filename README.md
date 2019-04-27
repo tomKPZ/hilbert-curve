@@ -4,7 +4,7 @@
 
 * *Speed*: Able to compute `Curve()` at `> 1GB/s` (tested on my
   faithful 7 year-old i5-2500K system with `N=2`, `K=15`,
-  `Int=int16_t`).
+  `Int=uint16_t`).
 * *Portability*: All the functions are self-contained (they don't call
   other functions) and should be easily portable to most other
   languages.
@@ -45,7 +45,7 @@ The above functions live in a static class called `Hilbert`. To call
 
 ```
 // Compute the K'th iteration of an N-dimensional Hilbert curve.
-int curve[1 << N * K][N];
+unsigned int curve[1 << N * K][N];
 Hilbert<>::Curve(N, K, curve[0]);
 ```
 
@@ -61,7 +61,7 @@ below.
 // Compute the K'th iteration of an N-dimensional Hilbert curve.
 constexpr int N = 2;
 constexpr int K = 3;
-int curve[1 << N * K][N];
+unsigned int curve[1 << N * K][N];
 
 // Untemplated version.
 // Use this version if N and K are not known at compile time.
@@ -86,10 +86,10 @@ non-templated versions.
 ### Using different integer types
 
 The `Hilbert` class itself has two template parameters: `Int` and
-`UInt` which are defaulted to `int` and `std::size_t`. If you know
-that `K` is small, you can use a narrower integer like `int16_t` if `K
-<= 16` or `int8_t` if `K <= 8`. This will also increase performance of
-`Curve()` since it's mostly limited by memory.
+`UInt` which are defaulted to `unsigned int` and `std::size_t`. If you
+know that `K` is small, you can use a narrower integer like `uint16_t`
+if `K <= 16` or `uint8_t` if `K <= 8`. This will also increase
+performance of `Curve()` since it's mostly limited by memory.
 
 It's recommended to leave `UInt` set to `std::size_t`. Some day I may
 add support for bit vectors in case you want to compute individual

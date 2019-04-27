@@ -40,7 +40,7 @@ void RunTest(std::size_t N, std::size_t K) {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | std::ios::in);
-  auto curve = std::make_unique<int[]>(N << N * K);
+  auto curve = std::make_unique<unsigned int[]>(N << N * K);
   Hilbert<>::Curve(N, K, curve.get());
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
     for (std::size_t j = 0; j < N; j++) {
@@ -51,7 +51,7 @@ void RunTest(std::size_t N, std::size_t K) {
       CHECK(x == (bytes[0] << 8) + bytes[1]);
     }
 
-    int v[N];
+    unsigned int v[N];
     Hilbert<>::IToV(N, K, i, v);
     CHECK(std::equal(v, v + N, curve.get() + N * i));
 

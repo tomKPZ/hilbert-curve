@@ -28,7 +28,8 @@
 #define HB_ALWAYS_INLINE inline
 #endif
 
-template <typename Int = int, typename UInt = std::size_t> class Hilbert {
+template <typename Int = unsigned int, typename UInt = std::size_t>
+class Hilbert {
  public:
   // Computes the K'th step of an N dimensional Hilbert curve.  The
   // result will be stored in curve, which must have space for 2^(N*K)
@@ -103,12 +104,12 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           UInt reflect = !((i + 1) & 2);
           for (UInt j = 0; j < N; ++j) {
             UInt order = rotate + j >= N ? rotate + j - N : rotate + j;
-            UInt coord = (i + (1 << j)) & (1 << (j + 1));
+            UInt coord = (i + (1U << j)) & (1U << (j + 1));
             Int offset = coord ? (1U << (k - 1)) : 0;
             Int temp = curve[read_base + order];
             temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
             curve[write_base + j] = temp + offset;
-            reflect = gray & (1 << (j + 1));
+            reflect = gray & (1U << (j + 1));
           }
         }
       }
@@ -133,7 +134,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       v[j] = 0;
     }
     for (UInt k = 1; k <= K; ++k) {
-      UInt orthant_i = i & ((1 << N * k) - 1);
+      UInt orthant_i = i & ((1U << N * k) - 1);
       UInt orthant = orthant_i >> (N * (k - 1));
 
       UInt rotate = N - 1;
@@ -152,8 +153,8 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
             rotate = read;
           }
 
-          UInt coord = (orthant + (1 << write)) & (1 << (write + 1));
-          Int offset = coord ? 1 << (k - 1) : 0;
+          UInt coord = (orthant + (1U << write)) & (1U << (write + 1));
+          Int offset = coord ? 1U << (k - 1) : 0;
 
           Int temp = v[read];
           temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
@@ -161,7 +162,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           v[write] = temp + offset;
 
           ++write;
-          reflect = gray & (1 << write);
+          reflect = gray & (1U << write);
         }
       }
     }
@@ -174,7 +175,7 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
       UInt parity = 0;
       for (UInt j = 0; j < N; ++j) {
         UInt jr = N - j - 1;
-        parity ^= v[jr] >= (1 << (k - 1));
+        parity ^= v[jr] >= (1U << (k - 1));
         orthant |= parity << jr;
       }
 
@@ -200,12 +201,12 @@ template <typename Int = int, typename UInt = std::size_t> class Hilbert {
           }
 
           Int temp = v[read];
-          temp = temp >= (1 << (k - 1)) ? temp - (1 << (k - 1)) : temp;
+          temp = temp >= (1U << (k - 1)) ? temp - (1U << (k - 1)) : temp;
           v[read] = v[write];
           v[write] = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
 
           ++order;
-          reflect = gray & (1 << order);
+          reflect = gray & (1U << order);
           write = write + 1 == N ? 0 : write + 1;
           read = read + 1 == N ? 0 : read + 1;
         }

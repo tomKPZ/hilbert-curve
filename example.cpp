@@ -28,7 +28,7 @@ constexpr int K = 2;
 
 // Compute and print the points of the curve.
 void BasicCurveExample() {
-  int curve[1 << N * K][N];
+  unsigned int curve[1 << N * K][N];
   Hilbert<>::Curve<N, K>(curve[0]);
   for (int i = 0; i < 1 << N * K; ++i) {
     for (int j = 0; j < N; ++j) {
@@ -42,7 +42,7 @@ void BasicCurveExample() {
 // reverse.
 void IToVExample() {
   for (int i = (1 << N * K) - 1; i > 0; --i) {
-    int v[N];
+    unsigned int v[N];
     Hilbert<>::IToV<N, K>(i, v);
     for (int j = 0; j < N; ++j) {
       std::cout << v[j] << '\t';
@@ -54,9 +54,9 @@ void IToVExample() {
 // Compute the indices that points would have given their coordinates.
 // Example limited to 2D for now.
 void VToIExample() {
-  for (int v0 = 0; v0 < 1 << K; v0++) {
-    for (int v1 = 0; v1 < 1 << K; v1++) {
-      int v[2] = {v0, v1};
+  for (unsigned int v0 = 0; v0 < 1 << K; v0++) {
+    for (unsigned int v1 = 0; v1 < 1 << K; v1++) {
+      unsigned int v[2] = {v0, v1};
       auto i = Hilbert<>::VToI<2, K>(v);
       std::cout << '(' << v0 << ",\t" << v1 << "):\t" << i << std::endl;
     }
@@ -64,8 +64,8 @@ void VToIExample() {
 }
 
 // Helper function for ConstexprCurveExample().
-constexpr std::array<int, N << N * K> ConstexprCurveImpl() {
-  std::array<int, N << N * K> curve{};
+constexpr std::array<unsigned int, N << N * K> ConstexprCurveImpl() {
+  std::array<unsigned int, N << N * K> curve{};
   Hilbert<>::Curve<N, K>(curve.data());
   return curve;
 }
