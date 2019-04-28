@@ -15,10 +15,10 @@
 // along with this program; if not, write to the Free Software Foundation,
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
-#include "hilbert.hpp"
-
 #include <iostream>
 #include <memory>
+
+#include "hilbert.hpp"
 
 // Dimension of curve used in examples.
 constexpr int N = 2;
@@ -54,7 +54,6 @@ void IToVExample() {
 // Helper function for VToIExample().
 void VToIExampleImpl(unsigned int v[], int j) {
   if (j == N) {
-    auto i = Hilbert<>::VToI<N, K>(v);
     std::cout << '(';
     for (int k = 0; k < N; k++) {
       std::cout << v[k];
@@ -62,6 +61,11 @@ void VToIExampleImpl(unsigned int v[], int j) {
         std::cout << ",\t";
       }
     }
+    unsigned int copy[N];
+    for (int k = 0; k < N; k++) {
+      copy[k] = v[k];
+    }
+    auto i = Hilbert<>::VToI<N, K>(copy);
     std::cout << "):\t" << i << std::endl;
   } else {
     for (unsigned int k = 0; k < 1 << K; ++k) {
