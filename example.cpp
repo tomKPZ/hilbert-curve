@@ -51,16 +51,30 @@ void IToVExample() {
   }
 }
 
-// Compute the indices that points would have given their coordinates.
-// Example limited to 2D for now.
-void VToIExample() {
-  for (unsigned int v0 = 0; v0 < 1 << K; v0++) {
-    for (unsigned int v1 = 0; v1 < 1 << K; v1++) {
-      unsigned int v[2] = {v0, v1};
-      auto i = Hilbert<>::VToI<2, K>(v);
-      std::cout << '(' << v0 << ",\t" << v1 << "):\t" << i << std::endl;
+// Helper function for VToIExample().
+void VToIExampleImpl(unsigned int v[], int j) {
+  if (j == N) {
+    auto i = Hilbert<>::VToI<N, K>(v);
+    std::cout << '(';
+    for (int k = 0; k < N; k++) {
+      std::cout << v[k];
+      if (k != N - 1) {
+        std::cout << ",\t";
+      }
+    }
+    std::cout << "):\t" << i << std::endl;
+  } else {
+    for (unsigned int k = 0; k < 1 << K; ++k) {
+      v[j] = k;
+      VToIExampleImpl(v, j + 1);
     }
   }
+}
+
+// Compute the indices that points would have given their coordinates.
+void VToIExample() {
+  unsigned int v[N];
+  VToIExampleImpl(v, 0);
 }
 
 // Helper function for ConstexprCurveExample().
