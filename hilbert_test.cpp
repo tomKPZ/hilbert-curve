@@ -22,6 +22,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <vector>
 
 template <typename T>
 T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
@@ -35,12 +36,65 @@ T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
 
 #define CHECK(x) check_aux(x, __FILE__, __LINE__, #x)
 
+using Int = unsigned int;
+using UInt = std::size_t;
+std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
+  std::vector<UInt> prev(1);
+  prev[0] = 0;
+  if (N == 0 || K == 0) {
+    return prev;
+  }
+  for (std::size_t k = 0; k < K; ++k) {
+    std::vector<UInt> is(1U << N * (k + 1));
+    for (std::size_t i = 0; i < (1U << N); ++i) {
+      UInt orthant = 0;
+      bool parity = 0;
+      for (std::size_t j = N; j-- > 0;) {
+        parity ^= i & (1 << j);
+        orthant |= parity << j;
+      }
+
+      std::size_t rotate = N - 1;
+      if (orthant != 0 && orthant != (1U << N) - 1) {
+        UInt j = (orthant - 1) >> 1;
+        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          --rotate;
+        }
+      }
+
+      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+      UInt orthant_is = i * (1 << (N * k));
+      for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
+        UInt src = prev[j] + orthant * (1 << (N * k));
+        UInt dest = orthant_is;
+        bool reflect = !(orthant == 0 || (orthant + 1) & 2);
+        for (std::size_t vi = 0; vi < N; ++vi) {
+          std::size_t mask = ((1 << k) - 1);
+          std::size_t mask_shifted = mask << (vi * k);
+          std::size_t value_shifted = mask_shifted & j;
+          std::size_t value = value_shifted >> (vi * k);
+          std::size_t nvi = (vi + rotate) % N;
+          if (reflect) {
+            value = (1 << k) - value - 1;
+          }
+          dest += value << (nvi * k);
+          reflect = gray & (1U << (vi + 1));
+        }
+        is[dest] = src;
+      }
+    }
+    prev = is;
+  }
+  return prev;
+}
+
 void RunTest(std::size_t N, std::size_t K) {
   std::string fname =
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | std::ios::in);
   auto curve = std::make_unique<unsigned int[]>(N << N * K);
+  auto curve_inverse = VsToIs(N, K);
   Hilbert<>::Curve(N, K, curve.get());
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
     for (std::size_t j = 0; j < N; j++) {
@@ -54,6 +108,12 @@ void RunTest(std::size_t N, std::size_t K) {
     unsigned int v[N];
     Hilbert<>::IToV(N, K, i, v);
     CHECK(std::equal(v, v + N, curve.get() + N * i));
+
+    std::size_t index = 0;
+    for (std::size_t j = 0; j < N; j++) {
+      index |= (v[j]) << (j * K);
+    }
+    CHECK(curve_inverse[index] == i);
 
     CHECK(i == Hilbert<>::VToI(N, K, v));
     for (int x : v) {
