@@ -20,13 +20,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <vector>
 
 #include "hilbert.hpp"
 
 constexpr int N = 2;
-constexpr int K = 3;
+constexpr int K = 1;
 
-void VToIExample2(const unsigned int orthant[], unsigned int v[], int j) {
+using Int = unsigned int;
+using UInt = std::size_t;
+
+void PrintPrevVs(unsigned int v[], int j) {
   if (j == N) {
     std::cout << '(';
     for (int k = 0; k < N; k++) {
@@ -37,37 +41,144 @@ void VToIExample2(const unsigned int orthant[], unsigned int v[], int j) {
     }
     unsigned int copy[N];
     for (int k = 0; k < N; k++) {
+      copy[k] = v[k];
+    }
+    auto i = Hilbert<>::VToI<N, (K - 1)>(copy);
+    std::cout << "):\t" << i << std::endl;
+  } else {
+    for (unsigned int k = 0; k < 1 << (K - 1); ++k) {
+      v[j] = k;
+      PrintPrevVs(v, j + 1);
+    }
+  }
+}
+
+void PrintPrevVs() {
+  unsigned int v[N];
+  PrintPrevVs(v, 0);
+}
+
+void PrintVs(const unsigned int orthant[], unsigned int v[], int j) {
+  if (j == N) {
+    unsigned int copy[N];
+    for (int k = 0; k < N; k++) {
       copy[k] = v[k] + orthant[k] * (1 << (K - 1));
+    }
+    std::cout << '(';
+    for (int k = 0; k < N; k++) {
+      std::cout << v[k];
+      if (k != N - 1) {
+        std::cout << ",\t";
+      }
     }
     auto i = Hilbert<>::VToI<N, K>(copy);
     std::cout << "):\t" << i % (1 << (N * (K - 1))) << std::endl;
   } else {
     for (unsigned int k = 0; k < 1 << (K - 1); ++k) {
       v[j] = k;
-      VToIExample2(orthant, v, j + 1);
+      PrintVs(orthant, v, j + 1);
     }
   }
 }
 
-void VToIExample1(unsigned int orthant[], int j) {
+void PrintVs(unsigned int orthant[], int j) {
   if (j == N) {
     unsigned int v[N];
-    VToIExample2(orthant, v, 0);
+    PrintVs(orthant, v, 0);
     std::cout << std::endl;
   } else {
     for (unsigned int k = 0; k < 2; ++k) {
       orthant[j] = k;
-      VToIExample1(orthant, j + 1);
+      PrintVs(orthant, j + 1);
     }
   }
 }
 
-void VToIExample() {
+void PrintVs() {
   unsigned int v[N];
-  VToIExample1(v, 0);
+  PrintVs(v, 0);
+}
+
+std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
+  std::vector<UInt> prev{1};
+  prev[0] = 0;
+  if (N == 0 || K == 0) {
+    return prev;
+  }
+  for (std::size_t k = 1; k <= N; ++k) {
+    std::vector<UInt> is{1U << N * k};
+    for (std::size_t i = 0; i < (1U << N); ++i) {
+      UInt orthant = 0;
+      bool parity = 0;
+      for (std::size_t j = N; j-- > 0;) {
+        parity ^= i & (1 << j);
+        orthant |= parity << j;
+      }
+
+      std::size_t rotate = N - 1;
+      if (orthant != 0 && orthant != (1U << N) - 1) {
+        UInt j = (orthant - 1) >> 1;
+        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          --rotate;
+        }
+      }
+
+      std::size_t gray = ((i - 1) >> 1) ^ (i - 1);
+      UInt* orthant_is = is.data() + i * (1 << (N * (K - 1)));
+      for (std::size_t j = 0; j < (1 << (N * (K - 1))); ++j) {
+        UInt src = prev[j] + orthant * (1 << (N * (K - 1)));
+        UInt* dest = orthant_is;
+        bool reflect = !((j + 1) & 2);
+        for (std::size_t vi = 0; vi < N; ++vi) {
+          std::size_t mask = ((1 << k) - 1);
+          std::size_t mask_shifted = mask << (vi * k);
+          std::size_t value_shifted = mask_shifted & j;
+          std::size_t value = value_shifted >> (vi * k);
+          std::size_t nvi = (vi + rotate) % N;
+          if (reflect) {
+            value = (1 << k) - value - 1;
+          }
+          dest += value << (nvi * k);
+          reflect = gray & (1U << (j + 1));
+        }
+        *dest = src;
+      }
+    }
+    prev = is;
+  }
+  return prev;
+}
+
+void PrintIs(const std::vector<UInt>& is) {
+  Int v[N];
+  for (std::size_t i = 0; i < 1 << (N * K); ++i) {
+    for (std::size_t j = 0; j < N; ++j) {
+      std::size_t mask = ((1 << K) - 1);
+      std::size_t mask_shifted = mask << (j * K);
+      std::size_t vj_shifted = mask_shifted & i;
+      std::size_t vj = vj_shifted >> (j * K);
+      v[j] = vj;
+    }
+    std::cout << '(';
+    for (int j = 0; j < N; ++j) {
+      std::cout << v[j];
+      if (j != N - 1) {
+        std::cout << ",\t";
+      }
+    }
+    std::cout << "):\t" << is[i] << std::endl;
+  }
 }
 
 int main(void) {
-  VToIExample();
+  {
+    PrintPrevVs();
+    std::cout << std::endl;
+    PrintVs();
+  }
+  {
+    std::vector<UInt> is = VsToIs(N, K);
+    PrintIs(is);
+  }
   return 0;
 }
