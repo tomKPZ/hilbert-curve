@@ -25,7 +25,7 @@
 #include "hilbert.hpp"
 
 constexpr int N = 2;
-constexpr int K = 1;
+constexpr int K = 2;
 
 using Int = unsigned int;
 using UInt = std::size_t;
@@ -102,13 +102,13 @@ void PrintVs() {
 }
 
 std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
-  std::vector<UInt> prev{1};
+  std::vector<UInt> prev(1);
   prev[0] = 0;
   if (N == 0 || K == 0) {
     return prev;
   }
-  for (std::size_t k = 1; k <= N; ++k) {
-    std::vector<UInt> is{1U << N * k};
+  for (std::size_t k = 0; k < K; ++k) {
+    std::vector<UInt> is(1U << N * (k + 1));
     for (std::size_t i = 0; i < (1U << N); ++i) {
       UInt orthant = 0;
       bool parity = 0;
@@ -125,12 +125,12 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
         }
       }
 
-      std::size_t gray = ((i - 1) >> 1) ^ (i - 1);
-      UInt* orthant_is = is.data() + i * (1 << (N * (K - 1)));
-      for (std::size_t j = 0; j < (1 << (N * (K - 1))); ++j) {
-        UInt src = prev[j] + orthant * (1 << (N * (K - 1)));
-        UInt* dest = orthant_is;
-        bool reflect = !((j + 1) & 2);
+      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+      UInt orthant_is = i * (1 << (N * k));
+      for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
+        UInt src = prev[j] + orthant * (1 << (N * k));
+        UInt dest = orthant_is;
+        bool reflect = !(orthant == 0 || (orthant + 1) & 2);
         for (std::size_t vi = 0; vi < N; ++vi) {
           std::size_t mask = ((1 << k) - 1);
           std::size_t mask_shifted = mask << (vi * k);
@@ -141,9 +141,9 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
             value = (1 << k) - value - 1;
           }
           dest += value << (nvi * k);
-          reflect = gray & (1U << (j + 1));
+          reflect = gray & (1U << (vi + 1));
         }
-        *dest = src;
+        is[dest] = src;
       }
     }
     prev = is;
