@@ -96,7 +96,7 @@ class Hilbert {
     if (N == 0 || K == 0) {
       return;
     }
-    for (std::size_t k = 1; k <= K; ++k) {
+    for (std::size_t k = 0; k < K; ++k) {
       for (std::size_t i = 1; i < (1U << N); ++i) {
         std::size_t rotate = N - 1;
         if (i != (1U << N) - 1) {
@@ -107,23 +107,23 @@ class Hilbert {
         }
 
         std::size_t gray = ((i - 1) >> 1) ^ (i - 1);
-        for (std::size_t p = 0; p < 1U << N * (k - 1); ++p) {
-          std::size_t write_base = N * ((i << N * (k - 1)) + p);
+        for (std::size_t p = 0; p < 1U << N * k; ++p) {
+          std::size_t write_base = N * ((i << N * k) + p);
           std::size_t read_base = N * p;
           bool reflect = !((i + 1) & 2);
           for (std::size_t j = 0; j < N; ++j) {
             std::size_t order = rotate + j >= N ? rotate + j - N : rotate + j;
             std::size_t coord = (i + (1U << j)) & (1U << (j + 1));
-            Int offset = coord ? (1U << (k - 1)) : 0;
+            Int offset = coord ? (1U << k) : 0;
             Int temp = curve[read_base + order];
-            temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
+            temp = reflect ? ~temp & ((1U << k) - 1) : temp;
             curve[write_base + j] = temp + offset;
             reflect = gray & (1U << (j + 1));
           }
         }
       }
 
-      for (std::size_t p = 0; p < 1U << N * (k - 1); ++p) {
+      for (std::size_t p = 0; p < 1U << N * k; ++p) {
         Int temp = curve[N * (p + 1) - 1];
         for (std::size_t i = N - 1; i > 0; --i) {
           curve[N * p + i] = curve[N * p + i - 1];
@@ -143,9 +143,9 @@ class Hilbert {
     if (N == 0 || K == 0) {
       return;
     }
-    for (std::size_t k = 1; k <= K; ++k) {
-      UInt orthant_i = i & ((1U << N * k) - 1);
-      UInt orthant = orthant_i >> (N * (k - 1));
+    for (std::size_t k = 0; k < K; ++k) {
+      UInt orthant_i = i & ((1U << N * (k + 1)) - 1);
+      UInt orthant = orthant_i >> (N * k);
 
       std::size_t rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
@@ -164,10 +164,10 @@ class Hilbert {
           }
 
           bool coord = (orthant + (1U << write)) & (1U << (write + 1));
-          Int offset = coord ? 1U << (k - 1) : 0;
+          Int offset = coord ? 1U << k : 0;
 
           Int temp = v[read];
-          temp = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
+          temp = reflect ? ~temp & ((1U << k) - 1) : temp;
           v[read] = v[write];
           v[write] = temp + offset;
 
@@ -185,11 +185,11 @@ class Hilbert {
     if (N == 0 || K == 0) {
       return i;
     }
-    for (std::size_t k = K; k > 0; --k) {
+    for (std::size_t k = K; k-- > 0;) {
       UInt orthant = 0;
       bool parity = 0;
       for (std::size_t j = N; j-- > 0;) {
-        parity ^= v[j] >= (1U << (k - 1));
+        parity ^= v[j] >= (1U << k);
         orthant |= parity << j;
       }
 
@@ -215,9 +215,9 @@ class Hilbert {
           }
 
           Int temp = v[read];
-          temp = temp >= (1U << (k - 1)) ? temp - (1U << (k - 1)) : temp;
+          temp = temp >= (1U << k) ? temp - (1U << k) : temp;
           v[read] = v[write];
-          v[write] = reflect ? ~temp & ((1U << (k - 1)) - 1) : temp;
+          v[write] = reflect ? ~temp & ((1U << k) - 1) : temp;
 
           ++order;
           reflect = gray & (1U << order);
@@ -226,7 +226,7 @@ class Hilbert {
         }
       }
 
-      i += orthant << N * (k - 1);
+      i += orthant << N * k;
     }
     return i;
   }

@@ -66,13 +66,15 @@ void PrintVs(const unsigned int orthant[], unsigned int v[], int j) {
     }
     std::cout << '(';
     for (int k = 0; k < N; k++) {
-      std::cout << v[k];
+      // std::cout << v[k];
+      std::cout << v[k] + (orthant[k] << (K - 1));
       if (k != N - 1) {
         std::cout << ",\t";
       }
     }
     auto i = Hilbert<>::VToI<N, K>(copy);
-    std::cout << "):\t" << i % (1 << (N * (K - 1))) << std::endl;
+    // std::cout << "):\t" << i % (1 << (N * (K - 1))) << std::endl;
+    std::cout << "):\t" << i << std::endl;
   } else {
     for (unsigned int k = 0; k < 1 << (K - 1); ++k) {
       v[j] = k;
