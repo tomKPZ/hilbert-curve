@@ -19,6 +19,7 @@
 // Temporary scratch file for testing.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <cassert>
 #include <iostream>
 #include <vector>
 
@@ -112,16 +113,29 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
     for (std::size_t i = 0; i < (1U << N); ++i) {
       UInt orthant = 0;
       bool parity = 0;
-      for (std::size_t j = N; j-- > 0;) {
-        parity ^= i & (1 << j);
+      for (std::size_t j = 0; j < N; ++j) {
+        parity ^= !!(i & (1 << j));
         orthant |= parity << j;
       }
 
       std::size_t rotate = N - 1;
-      if (i != 0 && i != (1U << N) - 1) {
-        UInt j = (i - 1) >> 1;
+      if (orthant != 0 && orthant != (1U << N) - 1) {
+        UInt j = (orthant - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
           --rotate;
+        }
+      }
+
+      if (N == 2 && K == 2 && k == 1) {
+	if (i == 0) {
+	  assert(rotate == 1);
+	} else if (i == 1) {
+          assert(rotate == 1);
+        } else if (i == 2) {
+          assert(rotate == 0);
+        } else {
+	  assert(i == 3);
+          assert(rotate == 0);
         }
       }
 
@@ -129,27 +143,40 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
       for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
         UInt src = prev[j] + orthant * (1U << (N * k));
         UInt dest = 0;
-        bool reflect = !(orthant == 0 || (orthant + 1) & 2);
         for (std::size_t vi = 0; vi < N; ++vi) {
+          std::size_t nvi = (vi + rotate) % N;
           std::size_t mask = ((1 << k) - 1);
           std::size_t mask_shifted = mask << (vi * k);
           std::size_t value_shifted = mask_shifted & j;
           std::size_t value = value_shifted >> (vi * k);
+          bool reflect = vi == 0 ? !(orthant == 0 || (orthant + 1) & 2)
+                                 : gray & (1U << vi);
+          if (N == 2 && K == 2 && k == 1) {
+            if (i == 0) {
+              assert(!reflect);
+            } else if (i == 1) {
+              assert(reflect);
+            } else if (i == 2) {
+              assert(!reflect);
+            } else {
+              assert(i == 3);
+              assert(reflect);
+            }
+          }
           if (reflect) {
             value = (1 << k) - value - 1;
           }
           if (i & (1U << vi)) {
             value += (1 << k);
           }
-          std::size_t nvi = (vi + rotate) % N;
           dest += value << (nvi * (k + 1));
-          reflect = gray & (1U << (vi + 1));
         }
         std::cout << dest << " <- " << src << std::endl;
         is[dest] = src;
       }
     }
     prev = is;
+    std::cout << std::endl;
   }
   return prev;
 }
