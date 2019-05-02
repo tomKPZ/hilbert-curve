@@ -113,9 +113,22 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
     for (std::size_t i = 0; i < (1U << N); ++i) {
       UInt orthant = 0;
       bool parity = 0;
-      for (std::size_t j = 0; j < N; ++j) {
-        parity ^= !!(i & (1 << j));
+      for (std::size_t j = N; j-- > 0;) {
+        parity ^= !!(i & (1 << (N - j - 1)));
         orthant |= parity << j;
+      }
+
+      if (N == 2 && K == 2 && k == 1) {
+        if (i == 0) {
+          assert(orthant == 0);
+        } else if (i == 1) {
+          assert(orthant == 3);
+        } else if (i == 2) {
+          assert(orthant == 1);
+        } else {
+          assert(i == 3);
+          assert(orthant == 2);
+        }
       }
 
       std::size_t rotate = N - 1;
@@ -127,14 +140,14 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
       }
 
       if (N == 2 && K == 2 && k == 1) {
-	if (i == 0) {
-	  assert(rotate == 1);
-	} else if (i == 1) {
+        if (i == 0) {
+          assert(rotate == 1);
+        } else if (i == 1) {
           assert(rotate == 1);
         } else if (i == 2) {
           assert(rotate == 0);
         } else {
-	  assert(i == 3);
+          assert(i == 3);
           assert(rotate == 0);
         }
       }
