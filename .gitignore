@@ -2,7 +2,6 @@ benchmark
 callgrind.out.*
 example
 hilbert_test
-temp
 
 # Prerequisites
 *.d
