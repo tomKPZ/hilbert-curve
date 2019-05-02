@@ -38,6 +38,7 @@ T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
 
 using Int = unsigned int;
 using UInt = std::size_t;
+#define assert(x) CHECK(x)
 std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
   std::vector<UInt> prev(1);
   prev[0] = 0;
@@ -50,19 +51,45 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
       UInt orthant = 0;
       bool parity = 0;
       for (std::size_t j = N; j-- > 0;) {
-        parity ^= i & (1 << j);
+        parity ^= !!(i & (1 << (N - j - 1)));
         orthant |= parity << j;
       }
 
-      std::size_t rotate = 0;
-      if (i != 0 && i != (1U << N) - 1) {
-        UInt j = (i - 1) >> 1;
-        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          ++rotate;
+      if (N == 2 && K == 2 && k == 1) {
+        if (i == 0) {
+          assert(orthant == 0);
+        } else if (i == 1) {
+          assert(orthant == 3);
+        } else if (i == 2) {
+          assert(orthant == 1);
+        } else {
+          assert(i == 3);
+          assert(orthant == 2);
         }
       }
 
-      UInt gray = ((i - 1) >> 1) ^ (i - 1);
+      std::size_t rotate = N - 1;
+      if (orthant != 0 && orthant != (1U << N) - 1) {
+        UInt j = (orthant - 1) >> 1;
+        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          --rotate;
+        }
+      }
+
+      if (N == 2 && K == 2 && k == 1) {
+        if (i == 0) {
+          assert(rotate == 1);
+        } else if (i == 1) {
+          assert(rotate == 1);
+        } else if (i == 2) {
+          assert(rotate == 0);
+        } else {
+          assert(i == 3);
+          assert(rotate == 0);
+        }
+      }
+
+      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
       for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
         UInt src = prev[j] + orthant * (1U << (N * k));
         UInt dest = 0;
@@ -72,22 +99,34 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
           std::size_t mask_shifted = mask << (vi * k);
           std::size_t value_shifted = mask_shifted & j;
           std::size_t value = value_shifted >> (vi * k);
-          bool reflect =
-              nvi == 0 ? (i == 0 || (i + 1) & 2) : gray & (1U << nvi);
+          bool reflect = vi == 0 ? !(orthant == 0 || (orthant + 1) & 2)
+                                 : gray & (1U << vi);
+          if (N == 2 && K == 2 && k == 1) {
+            if (i == 0) {
+              assert(!reflect);
+            } else if (i == 1) {
+              assert(reflect);
+            } else if (i == 2) {
+              assert(!reflect);
+            } else {
+              assert(i == 3);
+              assert(!reflect);
+            }
+          }
           if (reflect) {
             value = (1 << k) - value - 1;
           }
-          if (i & (1U << vi)) {
+          if (i & (1U << nvi)) {
             value += (1 << k);
           }
           dest += value << (nvi * (k + 1));
         }
-        std::cout << dest << " <- " << src << std::endl;
+        // std::cout << dest << " <- " << src << std::endl;
         is[dest] = src;
       }
     }
     prev = is;
-    std::cout << std::endl;
+    // std::cout << std::endl;
   }
   return prev;
 }
@@ -115,7 +154,7 @@ void RunTest(std::size_t N, std::size_t K) {
 
     std::size_t index = 0;
     for (std::size_t j = 0; j < N; j++) {
-      index |= (v[j]) << (j * K);
+      index |= (v[N - j - 1]) << (j * K);
     }
     std::cout << "checking " << curve_inverse[index] << " vs " << i
               << std::endl;

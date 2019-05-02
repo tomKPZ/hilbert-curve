@@ -179,17 +179,17 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
           if (reflect) {
             value = (1 << k) - value - 1;
           }
-          if (i & (1U << vi)) {
+          if (i & (1U << nvi)) {
             value += (1 << k);
           }
           dest += value << (nvi * (k + 1));
         }
-        std::cout << dest << " <- " << src << std::endl;
+        // std::cout << dest << " <- " << src << std::endl;
         is[dest] = src;
       }
     }
     prev = is;
-    std::cout << std::endl;
+    // std::cout << std::endl;
   }
   return prev;
 }
