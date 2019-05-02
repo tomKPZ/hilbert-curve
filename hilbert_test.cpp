@@ -38,7 +38,6 @@ T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
 
 using Int = unsigned int;
 using UInt = std::size_t;
-#define assert(x) CHECK(x)
 std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
   std::vector<UInt> prev(1);
   prev[0] = 0;
@@ -55,37 +54,11 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
         orthant |= parity << j;
       }
 
-      if (N == 2 && K == 2 && k == 1) {
-        if (i == 0) {
-          assert(orthant == 0);
-        } else if (i == 1) {
-          assert(orthant == 3);
-        } else if (i == 2) {
-          assert(orthant == 1);
-        } else {
-          assert(i == 3);
-          assert(orthant == 2);
-        }
-      }
-
       std::size_t rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
         UInt j = (orthant - 1) >> 1;
         for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
           --rotate;
-        }
-      }
-
-      if (N == 2 && K == 2 && k == 1) {
-        if (i == 0) {
-          assert(rotate == 1);
-        } else if (i == 1) {
-          assert(rotate == 1);
-        } else if (i == 2) {
-          assert(rotate == 0);
-        } else {
-          assert(i == 3);
-          assert(rotate == 0);
         }
       }
 
@@ -102,18 +75,6 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
           bool reflect = (N - nvi - 1) == 0
                              ? !(orthant == 0 || (orthant + 1) & 2)
                              : gray & (1U << (N - nvi - 1));
-          if (N == 2 && K == 2 && k == 1) {
-            if (i == 0) {
-              assert(!reflect);
-            } else if (i == 1) {
-              assert(reflect);
-            } else if (i == 2) {
-              assert(!reflect);
-            } else {
-              assert(i == 3);
-              assert(!reflect);
-            }
-          }
           if (reflect) {
             value = (1 << k) - value - 1;
           }
@@ -122,12 +83,10 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
           }
           dest += value << (nvi * (k + 1));
         }
-        // std::cout << dest << " <- " << src << std::endl;
         is[dest] = src;
       }
     }
     prev = is;
-    // std::cout << std::endl;
   }
   return prev;
 }
@@ -157,8 +116,6 @@ void RunTest(std::size_t N, std::size_t K) {
     for (std::size_t j = 0; j < N; j++) {
       index |= (v[N - j - 1]) << (j * K);
     }
-    std::cout << "checking " << curve_inverse[index] << " vs " << i
-              << std::endl;
     CHECK(curve_inverse[index] == i);
 
     CHECK(i == Hilbert<>::VToI(N, K, v));
