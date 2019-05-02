@@ -99,8 +99,9 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
           std::size_t mask_shifted = mask << (vi * k);
           std::size_t value_shifted = mask_shifted & j;
           std::size_t value = value_shifted >> (vi * k);
-          bool reflect = vi == 0 ? !(orthant == 0 || (orthant + 1) & 2)
-                                 : gray & (1U << vi);
+          bool reflect = (N - nvi - 1) == 0
+                             ? !(orthant == 0 || (orthant + 1) & 2)
+                             : gray & (1U << (N - nvi - 1));
           if (N == 2 && K == 2 && k == 1) {
             if (i == 0) {
               assert(!reflect);

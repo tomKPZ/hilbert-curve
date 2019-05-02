@@ -25,7 +25,7 @@
 
 #include "hilbert.hpp"
 
-constexpr int N = 2;
+constexpr int N = 3;
 constexpr int K = 2;
 
 using Int = unsigned int;
@@ -175,6 +175,10 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
               assert(i == 3);
               assert(!reflect);
             }
+          }
+          if (N == 3 && K == 2 && k == 1 && j == 0 && i == 2) {
+            std::cout << vi << " reflect is " << reflect << std::endl;
+	    std::cout << "rotate is " << rotate << std::endl;
           }
           if (reflect) {
             value = (1 << k) - value - 1;
