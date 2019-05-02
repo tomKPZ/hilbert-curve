@@ -160,7 +160,7 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
               assert(!reflect);
             } else {
               assert(i == 3);
-              assert(reflect);
+              assert(!reflect);
             }
           }
           if (reflect) {
