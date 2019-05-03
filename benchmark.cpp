@@ -24,22 +24,18 @@ int main() {
 
   {
     constexpr std::size_t bytes = sizeof(Int) * N << N * K;
-    auto time = [&](const char* desc, auto&& f) {
-      time_impl(bytes, desc, f);
-    };
+    auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
     std::unique_ptr<Int[]> vs;
     time("new[]", [&]() { vs = std::make_unique<Int[]>(N << N * K); });
     // memset() is not necessary, but just gives a frame of reference
     // for how fast we can sequentially write to main memory.
     time("memset", [&]() { std::memset(vs.get(), 0, bytes); });
-    time("Curve", [&]() { Hilbert<Int, UInt>::Curve<N, K>(vs.get()); });
+    time("IsToVs", [&]() { Hilbert<Int, UInt>::IsToVs<N, K>(vs.get()); });
   }
 
   {
     constexpr std::size_t bytes = sizeof(UInt) << N * K;
-    auto time = [&](const char* desc, auto&& f) {
-      time_impl(bytes, desc, f);
-    };
+    auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
     std::unique_ptr<UInt[]> is;
     time("new[]", [&]() { is = std::make_unique<UInt[]>(1 << N * K); });
     time("memset", [&]() { std::memset(is.get(), 0, bytes); });

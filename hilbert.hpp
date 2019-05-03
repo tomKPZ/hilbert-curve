@@ -34,23 +34,23 @@ class Hilbert {
   // Computes the K'th step of an N dimensional Hilbert curve.  The
   // result will be stored in curve, which must have space for 2^(N*K)
   // N-dimensional vectors, for a total of N*2^(N*K) integers.
-  static constexpr void Curve(std::size_t N, std::size_t K, Int curve[]) {
-    CurveImpl(N, K, curve);
+  static constexpr void IsToVs(std::size_t N, std::size_t K, Int vs[]) {
+    IsToVsImpl(N, K, vs);
   }
   template <std::size_t N>
-  static constexpr void CurveN(std::size_t K, Int curve[]) {
-    CurveImpl(N, K, curve);
+  static constexpr void IsToVsN(std::size_t K, Int vs[]) {
+    IsToVsImpl(N, K, vs);
   }
   template <std::size_t K>
-  static constexpr void CurveK(std::size_t N, Int curve[]) {
-    CurveImpl(N, K, curve);
+  static constexpr void IsToVsK(std::size_t N, Int vs[]) {
+    IsToVsImpl(N, K, vs);
   }
   template <std::size_t N, std::size_t K>
-  static constexpr void Curve(Int curve[]) {
-    CurveImpl(N, K, curve);
+  static constexpr void IsToVs(Int vs[]) {
+    IsToVsImpl(N, K, vs);
   }
 
-  // Computes the i'th vector in Curve(N, K).  The result will be
+  // Computes the i'th vector in IsToVs(N, K).  The result will be
   // stored in v.  Requires i < 2^(N*K).
   static constexpr void IToV(std::size_t N, std::size_t K, UInt i, Int v[]) {
     IToVImpl(N, K, i, v);
@@ -106,11 +106,11 @@ class Hilbert {
  private:
   Hilbert() = delete;
 
-  HB_ALWAYS_INLINE static constexpr void CurveImpl(std::size_t N,
-                                                   std::size_t K,
-                                                   Int curve[]) {
+  HB_ALWAYS_INLINE static constexpr void IsToVsImpl(std::size_t N,
+                                                    std::size_t K,
+                                                    Int vs[]) {
     for (std::size_t i = 0; i < N; ++i) {
-      curve[i] = 0;
+      vs[i] = 0;
     }
     if (N == 0 || K == 0) {
       return;
@@ -134,20 +134,20 @@ class Hilbert {
             std::size_t order = rotate + j >= N ? rotate + j - N : rotate + j;
             std::size_t coord = (i + (1U << j)) & (1U << (j + 1));
             Int offset = coord ? (1U << k) : 0;
-            Int temp = curve[read_base + order];
+            Int temp = vs[read_base + order];
             temp = reflect ? ~temp & ((1U << k) - 1) : temp;
-            curve[write_base + j] = temp + offset;
+            vs[write_base + j] = temp + offset;
             reflect = gray & (1U << (j + 1));
           }
         }
       }
 
       for (std::size_t p = 0; p < 1U << N * k; ++p) {
-        Int temp = curve[N * (p + 1) - 1];
+        Int temp = vs[N * (p + 1) - 1];
         for (std::size_t i = N - 1; i > 0; --i) {
-          curve[N * p + i] = curve[N * p + i - 1];
+          vs[N * p + i] = vs[N * p + i - 1];
         }
-        curve[N * p] = temp;
+        vs[N * p] = temp;
       }
     }
   }

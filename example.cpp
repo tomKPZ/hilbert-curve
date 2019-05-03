@@ -27,12 +27,12 @@ constexpr int N = 2;
 constexpr int K = 2;
 
 // Compute and print the points of the curve.
-void BasicCurveExample() {
-  unsigned int curve[1 << N * K][N];
-  Hilbert<>::Curve<N, K>(curve[0]);
+void BasicIsToVsExample() {
+  unsigned int vs[1 << N * K][N];
+  Hilbert<>::IsToVs<N, K>(vs[0]);
   for (int i = 0; i < 1 << N * K; ++i) {
     for (int j = 0; j < N; ++j) {
-      std::cout << curve[i][j] << '\t';
+      std::cout << vs[i][j] << '\t';
     }
     std::cout << std::endl;
   }
@@ -81,27 +81,27 @@ void VToIExample() {
   VToIExampleImpl(v, 0);
 }
 
-// Helper function for ConstexprCurveExample().
-constexpr std::array<unsigned int, N << N * K> ConstexprCurveImpl() {
-  std::array<unsigned int, N << N * K> curve{};
-  Hilbert<>::Curve<N, K>(curve.data());
-  return curve;
+// Helper function for ConstexprIsToVsExample().
+constexpr std::array<unsigned int, N << N * K> ConstexprIsToVsImpl() {
+  std::array<unsigned int, N << N * K> vs{};
+  Hilbert<>::IsToVs<N, K>(vs.data());
+  return vs;
 }
 
 // Compute the points of the curve at compile-time and print them.
-void ConstexprCurveExample() {
-  constexpr auto curve = ConstexprCurveImpl();
+void ConstexprIsToVsExample() {
+  constexpr auto vs = ConstexprIsToVsImpl();
   for (int i = 0; i < 1 << N * K; ++i) {
     for (int j = 0; j < N; ++j) {
-      std::cout << curve[i * N + j] << '\t';
+      std::cout << vs[i * N + j] << '\t';
     }
     std::cout << std::endl;
   }
 }
 
 int main(void) {
-  std::cout << "BasicCurveExample" << std::endl;
-  BasicCurveExample();
+  std::cout << "BasicIsToVsExample" << std::endl;
+  BasicIsToVsExample();
 
   std::cout << "IToVExample" << std::endl;
   IToVExample();
@@ -109,7 +109,7 @@ int main(void) {
   std::cout << "VToIExample" << std::endl;
   VToIExample();
 
-  std::cout << "ConstexprCurveExample" << std::endl;
-  ConstexprCurveExample();
+  std::cout << "ConstexprIsToVsExample" << std::endl;
+  ConstexprIsToVsExample();
   return 0;
 }

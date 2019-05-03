@@ -41,13 +41,13 @@ void RunTest(std::size_t N, std::size_t K) {
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
   f.open(fname, std::ios::binary | std::ios::in);
-  auto curve = std::make_unique<unsigned int[]>(N << N * K);
-  Hilbert<>::Curve(N, K, curve.get());
-  auto curve_inverse = std::make_unique<unsigned int[]>(1U << N * K);
-  Hilbert<>::VsToIs(N, K, curve_inverse.get());
+  auto vs = std::make_unique<unsigned int[]>(N << N * K);
+  Hilbert<>::IsToVs(N, K, vs.get());
+  auto is = std::make_unique<unsigned int[]>(1U << N * K);
+  Hilbert<>::VsToIs(N, K, is.get());
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
     for (std::size_t j = 0; j < N; j++) {
-      int x = curve[N * i + j];
+      int x = vs[N * i + j];
       uint8_t bytes[2];
       f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
       CHECK(f);
@@ -56,13 +56,13 @@ void RunTest(std::size_t N, std::size_t K) {
 
     unsigned int v[N];
     Hilbert<>::IToV(N, K, i, v);
-    CHECK(std::equal(v, v + N, curve.get() + N * i));
+    CHECK(std::equal(v, v + N, vs.get() + N * i));
 
     std::size_t index = 0;
     for (std::size_t j = 0; j < N; j++) {
       index |= v[j] << j * K;
     }
-    CHECK(curve_inverse[index] == i);
+    CHECK(is[index] == i);
 
     CHECK(i == Hilbert<>::VToI(N, K, v));
     for (int x : v) {
