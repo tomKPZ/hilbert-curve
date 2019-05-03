@@ -69,9 +69,9 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
         for (std::size_t vi = 0; vi < N; ++vi) {
           std::size_t nvi = (vi + rotate) % N;
           std::size_t mask = ((1 << k) - 1);
-          std::size_t mask_shifted = mask << (vi * k);
+          std::size_t mask_shifted = mask << ((N - vi - 1) * k);
           std::size_t value_shifted = mask_shifted & j;
-          std::size_t value = value_shifted >> (vi * k);
+          std::size_t value = value_shifted >> ((N - vi - 1) * k);
           bool reflect = (N - nvi - 1) == 0
                              ? !(orthant == 0 || (orthant + 1) & 2)
                              : gray & (1U << (N - nvi - 1));
@@ -79,9 +79,9 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
             value = (1 << k) - value - 1;
           }
           if (i & (1U << nvi)) {
-            value += (1 << k);
+            value |= (1 << k);
           }
-          dest += value << (nvi * (k + 1));
+          dest |= value << ((N - nvi - 1) * (k + 1));
         }
         is[dest] = src;
       }
@@ -114,7 +114,7 @@ void RunTest(std::size_t N, std::size_t K) {
 
     std::size_t index = 0;
     for (std::size_t j = 0; j < N; j++) {
-      index |= (v[N - j - 1]) << (j * K);
+      index |= v[j] << j * K;
     }
     CHECK(curve_inverse[index] == i);
 
