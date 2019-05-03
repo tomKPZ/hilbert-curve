@@ -28,7 +28,7 @@
 #define HB_ALWAYS_INLINE inline
 #endif
 
-template <typename Int = unsigned int, typename UInt = std::size_t>
+template <typename Int = unsigned int, typename UInt = unsigned int>
 class Hilbert {
  public:
   // Computes the K'th step of an N dimensional Hilbert curve.  The
@@ -82,6 +82,22 @@ class Hilbert {
   }
   template <std::size_t N, std::size_t K> static constexpr UInt VToI(Int v[]) {
     return VToIImpl(N, K, v);
+  }
+
+  // Computes the inverse of the K'th step of an N dimensional Hilbert
+  // curve.  The result will be stored in |is|, which must have space
+  // for 2^(N*K) Ints.
+  static constexpr void VsToIs(std::size_t N, std::size_t K, Int is[]) {
+    VsToIsImpl(N, K, is);
+  }
+  template <std::size_t N> static constexpr void VsToIsN(std::size_t K, Int is[]) {
+    VsToIsImpl(N, K, is);
+  }
+  template <std::size_t K> static constexpr void VsToIsK(std::size_t N, Int is[]) {
+    VsToIsImpl(N, K, is);
+  }
+  template <std::size_t N, std::size_t K> static constexpr void VsToIs(Int is[]) {
+    VsToIsImpl(N, K, is);
   }
 
  private:
@@ -229,6 +245,66 @@ class Hilbert {
       i += orthant << N * k;
     }
     return i;
+  }
+
+  HB_ALWAYS_INLINE static constexpr void VsToIsImpl(std::size_t N,
+                                                    std::size_t K,
+                                                    UInt is[]) {
+    is[0] = 0;
+    if (N == 0 || K == 0) {
+      return;
+    }
+    for (std::size_t k = 0; k < K; ++k) {
+      for (std::size_t j = 0; j < (1U << (N * k)); ++j) {
+        is[j | (1U << (N * (k + 1) - 1))] = is[j];
+      }
+      for (std::size_t j = 0; j < (1U << (N * k)); ++j) {
+        UInt dest = 0;
+        for (std::size_t nvi = 0; nvi < N; ++nvi) {
+          std::size_t dsh = (nvi == 0 ? N - 1 : nvi - 1) * k;
+          dest |= (((((1U << k) - 1) << dsh) & j) >> dsh) << (nvi * (k + 1));
+        }
+        is[dest] = is[j | (1U << (N * (k + 1) - 1))];
+      }
+
+      for (std::size_t i = 1; i < (1U << N); ++i) {
+        UInt orthant = 0;
+        bool parity = 0;
+        for (std::size_t j = 0; j < N; ++j) {
+          parity ^= (i & (1U << j)) >> j;
+          orthant |= parity << (N - j - 1);
+        }
+
+        std::size_t rotate = N - 1;
+        if (orthant != 0 && orthant != (1U << N) - 1) {
+          UInt j = (orthant - 1) >> 1;
+          for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+            --rotate;
+          }
+        }
+
+        UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+        for (std::size_t j = 0; j < (1U << (N * k)); ++j) {
+          UInt src = 0;
+          UInt dest = 0;
+          bool reflect = !(orthant == 0 || (orthant + 1) & 2);
+          for (std::size_t nvi = 0; nvi < N; ++nvi) {
+            std::size_t dsh = nvi + rotate;
+            dsh = (dsh >= N ? dsh - N : dsh) * k;
+            std::size_t di = ((((1U << k) - 1) << dsh) & j) >> dsh;
+            di = reflect ? ~di & ((1U << k) - 1) : di;
+            di |= (i & (1U << (N - nvi - 1))) ? 1U << k : 0;
+            dest |= di << (nvi * (k + 1));
+
+            std::size_t ssh = (nvi == 0 ? N - 1 : nvi - 1) * k;
+            src |= (((((1U << k) - 1) << ssh) & j) >> ssh) << (nvi * (k + 1));
+
+            reflect = gray & (1U << (nvi + 1));
+          }
+          is[dest] = is[src] + orthant * (1U << (N * k));
+        }
+      }
+    }
   }
 };
 
