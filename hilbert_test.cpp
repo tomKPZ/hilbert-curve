@@ -48,25 +48,20 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
     std::vector<UInt> is(1U << N * (k + 1));
 
     for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
-      UInt src = prev[j];
       UInt dest = 0;
       for (std::size_t nvi = 0; nvi < N; ++nvi) {
-        std::size_t vi = (nvi + N - 1) % N;
-        std::size_t mask = ((1 << k) - 1);
-        std::size_t mask_shifted = mask << (vi * k);
-        std::size_t value_shifted = mask_shifted & j;
-        std::size_t value = value_shifted >> (vi * k);
-        dest |= value << (nvi * (k + 1));
+        std::size_t dsh = (nvi == 0 ? N - 1 : nvi - 1) * k;
+        dest |= (((((1 << k) - 1) << dsh) & j) >> dsh) << (nvi * (k + 1));
       }
-      is[dest] = src;
+      is[dest] = prev[j];
     }
 
     for (std::size_t i = 1; i < (1U << N); ++i) {
       UInt orthant = 0;
       bool parity = 0;
-      for (std::size_t j = N; j-- > 0;) {
-        parity ^= !!(i & (1 << (N - j - 1)));
-        orthant |= parity << j;
+      for (std::size_t j = 0; j < N; ++j) {
+        parity ^= (i & (1 << j)) >> j;
+        orthant |= parity << (N - j - 1);
       }
 
       std::size_t rotate = N - 1;
@@ -79,21 +74,18 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
 
       UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
       for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
-        UInt src = prev[j] + orthant * (1U << (N * k));
+        UInt src = j;
         UInt dest = 0;
 	bool reflect = !(orthant == 0 || (orthant + 1) & 2);
         for (std::size_t nvi = 0; nvi < N; ++nvi) {
-          std::size_t vi = (nvi + rotate) % N;
-          std::size_t mask = ((1 << k) - 1);
-          std::size_t mask_shifted = mask << (vi * k);
-          std::size_t value_shifted = mask_shifted & j;
-          std::size_t value = value_shifted >> (vi * k);
-          value = reflect ? ~value & ((1U << k) - 1) : value;
-          value |= (i & (1U << (N - nvi - 1))) ? 1 << k : 0;
-          dest |= value << (nvi * (k + 1));
+          std::size_t dsh = ((nvi + rotate) % N) * k;
+          std::size_t di = ((((1 << k) - 1) << dsh) & j) >> dsh;
+          di = reflect ? ~di & ((1U << k) - 1) : di;
+          di |= (i & (1U << (N - nvi - 1))) ? 1 << k : 0;
+          dest |= di << (nvi * (k + 1));
           reflect = gray & (1U << (nvi + 1));
         }
-        is[dest] = src;
+        is[dest] = prev[src] + orthant * (1U << (N * k));
       }
     }
     prev = is;
