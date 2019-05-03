@@ -78,9 +78,6 @@ void VsToIs(std::size_t N, std::size_t K, UInt is[]) {
         UInt dest = 0;
         bool reflect = !(orthant == 0 || (orthant + 1) & 2);
         for (std::size_t nvi = 0; nvi < N; ++nvi) {
-          std::size_t ssh = (nvi == 0 ? N - 1 : nvi - 1) * k;
-          src |= (((((1U << k) - 1) << ssh) & j) >> ssh) << (nvi * (k + 1));
-
           std::size_t dsh = nvi + rotate;
           dsh = (dsh >= N ? dsh - N : dsh) * k;
           std::size_t di = ((((1U << k) - 1) << dsh) & j) >> dsh;
@@ -88,6 +85,9 @@ void VsToIs(std::size_t N, std::size_t K, UInt is[]) {
           di |= (i & (1U << (N - nvi - 1))) ? 1U << k : 0;
           dest |= di << (nvi * (k + 1));
 
+          std::size_t ssh = (nvi == 0 ? N - 1 : nvi - 1) * k;
+          src |= (((((1U << k) - 1) << ssh) & j) >> ssh) << (nvi * (k + 1));
+	  
           reflect = gray & (1U << (nvi + 1));
         }
         is[dest] = is[src] + orthant * (1U << (N * k));
