@@ -48,12 +48,18 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
     std::vector<UInt> is(1U << N * (k + 1));
 
     for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
+      is[j] = prev[j];
+    }
+    for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
+      is[j | (1 << (N * (k + 1) - 1))] = is[j];
+    }
+    for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
       UInt dest = 0;
       for (std::size_t nvi = 0; nvi < N; ++nvi) {
         std::size_t dsh = (nvi == 0 ? N - 1 : nvi - 1) * k;
         dest |= (((((1 << k) - 1) << dsh) & j) >> dsh) << (nvi * (k + 1));
       }
-      is[dest] = prev[j];
+      is[dest] = is[j | (1 << (N * (k + 1) - 1))];
     }
 
     for (std::size_t i = 1; i < (1U << N); ++i) {
