@@ -81,7 +81,8 @@ void VsToIs(std::size_t N, std::size_t K, UInt is[]) {
           std::size_t ssh = (nvi == 0 ? N - 1 : nvi - 1) * k;
           src |= (((((1U << k) - 1) << ssh) & j) >> ssh) << (nvi * (k + 1));
 
-          std::size_t dsh = ((nvi + rotate) % N) * k;
+          std::size_t dsh = nvi + rotate;
+          dsh = (dsh >= N ? dsh - N : dsh) * k;
           std::size_t di = ((((1U << k) - 1) << dsh) & j) >> dsh;
           di = reflect ? ~di & ((1U << k) - 1) : di;
           di |= (i & (1U << (N - nvi - 1))) ? 1U << k : 0;
