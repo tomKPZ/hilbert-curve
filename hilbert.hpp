@@ -87,16 +87,19 @@ class Hilbert {
   // Computes the inverse of the K'th step of an N dimensional Hilbert
   // curve.  The result will be stored in |is|, which must have space
   // for 2^(N*K) Ints.
-  static constexpr void VsToIs(std::size_t N, std::size_t K, Int is[]) {
+  static constexpr void VsToIs(std::size_t N, std::size_t K, UInt is[]) {
     VsToIsImpl(N, K, is);
   }
-  template <std::size_t N> static constexpr void VsToIsN(std::size_t K, Int is[]) {
+  template <std::size_t N>
+  static constexpr void VsToIsN(std::size_t K, UInt is[]) {
     VsToIsImpl(N, K, is);
   }
-  template <std::size_t K> static constexpr void VsToIsK(std::size_t N, Int is[]) {
+  template <std::size_t K>
+  static constexpr void VsToIsK(std::size_t N, UInt is[]) {
     VsToIsImpl(N, K, is);
   }
-  template <std::size_t N, std::size_t K> static constexpr void VsToIs(Int is[]) {
+  template <std::size_t N, std::size_t K>
+  static constexpr void VsToIs(UInt is[]) {
     VsToIsImpl(N, K, is);
   }
 
