@@ -38,18 +38,12 @@ T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
 
 using Int = unsigned int;
 using UInt = std::size_t;
-std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
-  std::vector<UInt> prev(1);
-  prev[0] = 0;
+void VsToIs(std::size_t N, std::size_t K, UInt is[]) {
+  is[0] = 0;
   if (N == 0 || K == 0) {
-    return prev;
+    return;
   }
   for (std::size_t k = 0; k < K; ++k) {
-    std::vector<UInt> is(1U << N * (k + 1));
-
-    for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
-      is[j] = prev[j];
-    }
     for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
       is[j | (1 << (N * (k + 1) - 1))] = is[j];
     }
@@ -98,9 +92,7 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
         is[dest] = is[src] + orthant * (1U << (N * k));
       }
     }
-    prev = is;
   }
-  return prev;
 }
 
 void RunTest(std::size_t N, std::size_t K) {
@@ -109,8 +101,9 @@ void RunTest(std::size_t N, std::size_t K) {
   std::fstream f;
   f.open(fname, std::ios::binary | std::ios::in);
   auto curve = std::make_unique<unsigned int[]>(N << N * K);
-  auto curve_inverse = VsToIs(N, K);
   Hilbert<>::Curve(N, K, curve.get());
+  auto curve_inverse = std::make_unique<UInt[]>(1 << N * K);
+  VsToIs(N, K, curve_inverse.get());
   for (std::size_t i = 0; i < 1U << (N * K); i++) {
     for (std::size_t j = 0; j < N; j++) {
       int x = curve[N * i + j];
