@@ -66,22 +66,17 @@ std::vector<UInt> VsToIs(std::size_t N, std::size_t K) {
       for (std::size_t j = 0; j < (1 << (N * k)); ++j) {
         UInt src = prev[j] + orthant * (1U << (N * k));
         UInt dest = 0;
-        for (std::size_t vi = 0; vi < N; ++vi) {
-          std::size_t nvi = (vi + rotate) % N;
+	bool reflect = !(orthant == 0 || (orthant + 1) & 2);
+        for (std::size_t nvi = 0; nvi < N; ++nvi) {
+          std::size_t vi = (nvi + rotate) % N;
           std::size_t mask = ((1 << k) - 1);
-          std::size_t mask_shifted = mask << ((N - vi - 1) * k);
+          std::size_t mask_shifted = mask << (vi * k);
           std::size_t value_shifted = mask_shifted & j;
-          std::size_t value = value_shifted >> ((N - vi - 1) * k);
-          bool reflect = (N - nvi - 1) == 0
-                             ? !(orthant == 0 || (orthant + 1) & 2)
-                             : gray & (1U << (N - nvi - 1));
-          if (reflect) {
-            value = (1 << k) - value - 1;
-          }
-          if (i & (1U << nvi)) {
-            value |= (1 << k);
-          }
-          dest |= value << ((N - nvi - 1) * (k + 1));
+          std::size_t value = value_shifted >> (vi * k);
+          value = reflect ? ~value & ((1U << k) - 1) : value;
+          value |= (i & (1U << (N - nvi - 1))) ? 1 << k : 0;
+          dest |= value << (nvi * (k + 1));
+          reflect = gray & (1U << (nvi + 1));
         }
         is[dest] = src;
       }
