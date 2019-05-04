@@ -20,18 +20,22 @@
 
 #include "hilbert.hpp"
 
+using ITy = unsigned int;
+using ViTy = unsigned int;
+using STy = unsigned int;
+
 // Dimension of curve used in examples.
-constexpr int N = 2;
+constexpr STy N = 2;
 
 // Iteration of curve used in examples.
-constexpr int K = 2;
+constexpr STy K = 2;
 
 // Compute and print the points of the curve.
 void BasicIsToVsExample() {
-  unsigned int vs[1 << N * K][N];
+  ViTy vs[1U << N * K][N];
   Hilbert<>::IsToVs<N, K>(vs[0]);
-  for (int i = 0; i < 1 << N * K; ++i) {
-    for (int j = 0; j < N; ++j) {
+  for (STy i = 0; i < 1U << N * K; ++i) {
+    for (STy j = 0; j < N; ++j) {
       std::cout << vs[i][j] << '\t';
     }
     std::cout << std::endl;
@@ -41,10 +45,10 @@ void BasicIsToVsExample() {
 // Compute and point the points of the curve one-at-a-time and in
 // reverse.
 void IToVExample() {
-  for (int i = (1 << N * K) - 1; i > 0; --i) {
-    unsigned int v[N];
+  for (ITy i = (1U << N * K) - 1; i > 0; --i) {
+    ViTy v[N];
     Hilbert<>::IToV<N, K>(i, v);
-    for (int j = 0; j < N; ++j) {
+    for (STy j = 0; j < N; ++j) {
       std::cout << v[j] << '\t';
     }
     std::cout << std::endl;
@@ -52,23 +56,23 @@ void IToVExample() {
 }
 
 // Helper function for VToIExample().
-void VToIExampleImpl(unsigned int v[], int j) {
+void VToIExampleImpl(ViTy v[], STy j) {
   if (j == N) {
     std::cout << '(';
-    for (int k = 0; k < N; k++) {
+    for (STy k = 0; k < N; ++k) {
       std::cout << v[k];
       if (k != N - 1) {
         std::cout << ",\t";
       }
     }
-    unsigned int copy[N];
-    for (int k = 0; k < N; k++) {
+    ViTy copy[N];
+    for (STy k = 0; k < N; ++k) {
       copy[k] = v[k];
     }
     auto i = Hilbert<>::VToI<N, K>(copy);
     std::cout << "):\t" << i << std::endl;
   } else {
-    for (unsigned int k = 0; k < 1 << K; ++k) {
+    for (STy k = 0; k < 1U << K; ++k) {
       v[j] = k;
       VToIExampleImpl(v, j + 1);
     }
@@ -77,13 +81,13 @@ void VToIExampleImpl(unsigned int v[], int j) {
 
 // Compute the indices that points would have given their coordinates.
 void VToIExample() {
-  unsigned int v[N];
+  ViTy v[N];
   VToIExampleImpl(v, 0);
 }
 
 // Helper function for ConstexprIsToVsExample().
-constexpr std::array<unsigned int, N << N * K> ConstexprIsToVsImpl() {
-  std::array<unsigned int, N << N * K> vs{};
+constexpr std::array<ViTy, N << N * K> ConstexprIsToVsImpl() {
+  std::array<ViTy, N << N * K> vs{};
   Hilbert<>::IsToVs<N, K>(vs.data());
   return vs;
 }
@@ -91,8 +95,8 @@ constexpr std::array<unsigned int, N << N * K> ConstexprIsToVsImpl() {
 // Compute the points of the curve at compile-time and print them.
 void ConstexprIsToVsExample() {
   constexpr auto vs = ConstexprIsToVsImpl();
-  for (int i = 0; i < 1 << N * K; ++i) {
-    for (int j = 0; j < N; ++j) {
+  for (STy i = 0; i < 1U << N * K; ++i) {
+    for (STy j = 0; j < N; ++j) {
       std::cout << vs[i * N + j] << '\t';
     }
     std::cout << std::endl;

@@ -18,8 +18,6 @@
 #ifndef HILBERT_HPP
 #define HILBERT_HPP
 
-#include <cstdint>
-
 #if defined(__GNUC__)
 #define HB_ALWAYS_INLINE inline __attribute__((__always_inline__))
 #elif defined(_MSC_VER)
@@ -28,102 +26,93 @@
 #define HB_ALWAYS_INLINE inline
 #endif
 
-template <typename Int = unsigned int, typename UInt = unsigned int>
+template <typename ViTy = unsigned int,
+          typename ITy = unsigned int,
+          typename STy = unsigned int>
 class Hilbert {
  public:
-  static constexpr void IsToVs(std::size_t N, std::size_t K, Int vs[]) {
+  static constexpr void IsToVs(STy N, STy K, ViTy vs[]) {
     IsToVsImpl(N, K, vs);
   }
-  template <std::size_t N>
-  static constexpr void IsToVsN(std::size_t K, Int vs[]) {
+  template <STy N> static constexpr void IsToVsN(STy K, ViTy vs[]) {
     IsToVsImpl(N, K, vs);
   }
-  template <std::size_t K>
-  static constexpr void IsToVsK(std::size_t N, Int vs[]) {
+  template <STy K> static constexpr void IsToVsK(STy N, ViTy vs[]) {
     IsToVsImpl(N, K, vs);
   }
-  template <std::size_t N, std::size_t K>
-  static constexpr void IsToVs(Int vs[]) {
+  template <STy N, STy K> static constexpr void IsToVs(ViTy vs[]) {
     IsToVsImpl(N, K, vs);
   }
 
-  static constexpr void VsToIs(std::size_t N, std::size_t K, UInt is[]) {
+  static constexpr void VsToIs(STy N, STy K, ITy is[]) {
     VsToIsImpl(N, K, is);
   }
-  template <std::size_t N>
-  static constexpr void VsToIsN(std::size_t K, UInt is[]) {
+  template <STy N> static constexpr void VsToIsN(STy K, ITy is[]) {
     VsToIsImpl(N, K, is);
   }
-  template <std::size_t K>
-  static constexpr void VsToIsK(std::size_t N, UInt is[]) {
+  template <STy K> static constexpr void VsToIsK(STy N, ITy is[]) {
     VsToIsImpl(N, K, is);
   }
-  template <std::size_t N, std::size_t K>
-  static constexpr void VsToIs(UInt is[]) {
+  template <STy N, STy K> static constexpr void VsToIs(ITy is[]) {
     VsToIsImpl(N, K, is);
   }
 
-  static constexpr void IToV(std::size_t N, std::size_t K, UInt i, Int v[]) {
+  static constexpr void IToV(STy N, STy K, ITy i, ViTy v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <std::size_t N>
-  static constexpr void IToVN(std::size_t K, UInt i, Int v[]) {
+  template <STy N> static constexpr void IToVN(STy K, ITy i, ViTy v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <std::size_t K>
-  static constexpr void IToVK(std::size_t N, UInt i, Int v[]) {
+  template <STy K> static constexpr void IToVK(STy N, ITy i, ViTy v[]) {
     IToVImpl(N, K, i, v);
   }
-  template <std::size_t N, std::size_t K>
-  static constexpr void IToV(UInt i, Int v[]) {
+  template <STy N, STy K> static constexpr void IToV(ITy i, ViTy v[]) {
     IToVImpl(N, K, i, v);
   }
 
-  static constexpr UInt VToI(std::size_t N, std::size_t K, Int v[]) {
+  static constexpr ITy VToI(STy N, STy K, ViTy v[]) {
     return VToIImpl(N, K, v);
   }
-  template <std::size_t N> static constexpr UInt VToIN(std::size_t K, Int v[]) {
+  template <STy N> static constexpr ITy VToIN(STy K, ViTy v[]) {
     return VToIImpl(N, K, v);
   }
-  template <std::size_t K> static constexpr UInt VToIK(std::size_t N, Int v[]) {
+  template <STy K> static constexpr ITy VToIK(STy N, ViTy v[]) {
     return VToIImpl(N, K, v);
   }
-  template <std::size_t N, std::size_t K> static constexpr UInt VToI(Int v[]) {
+  template <STy N, STy K> static constexpr ITy VToI(ViTy v[]) {
     return VToIImpl(N, K, v);
   }
 
  private:
   Hilbert() = delete;
 
-  HB_ALWAYS_INLINE static constexpr void IsToVsImpl(std::size_t N,
-                                                    std::size_t K,
-                                                    Int vs[]) {
-    for (std::size_t i = 0; i < N; ++i) {
+  HB_ALWAYS_INLINE static constexpr void IsToVsImpl(STy N, STy K, ViTy vs[]) {
+    for (STy i = 0; i < N; ++i) {
       vs[i] = 0;
     }
     if (N == 0 || K == 0) {
       return;
     }
-    for (std::size_t k = 0; k < K; ++k) {
-      for (std::size_t i = 1; i < (1U << N); ++i) {
-        std::size_t rotate = N - 1;
+    for (STy k = 0; k < K; ++k) {
+      for (STy i = 1; i < (1U << N); ++i) {
+        STy rotate = N - 1;
         if (i != (1U << N) - 1) {
-          std::size_t j = (i - 1) >> 1;
-          for (std::size_t bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          STy j = (i - 1) >> 1;
+          for (STy bits = ~j & (j + 1); bits != 0; bits >>= 1) {
             --rotate;
           }
         }
 
-        std::size_t gray = ((i - 1) >> 1) ^ (i - 1);
-        for (std::size_t p = 0; p < 1U << N * k; ++p) {
-          std::size_t write_base = N * ((i << N * k) + p);
-          std::size_t read_base = N * p;
+        STy gray = ((i - 1) >> 1) ^ (i - 1);
+        for (STy p = 0; p < 1U << N * k; ++p) {
+          STy write_base = N * ((i << N * k) + p);
+          STy read_base = N * p;
           bool reflect = !((i + 1) & 2);
-          for (std::size_t j = 0; j < N; ++j) {
-            std::size_t order = rotate + j >= N ? rotate + j - N : rotate + j;
-            std::size_t coord = (i + (1U << j)) & (1U << (j + 1));
-            Int offset = coord ? (1U << k) : 0;
-            Int temp = vs[read_base + order];
+          for (STy j = 0; j < N; ++j) {
+            STy order = rotate + j >= N ? rotate + j - N : rotate + j;
+            STy coord = (i + (1U << j)) & (1U << (j + 1));
+            ViTy offset = coord ? (1U << k) : 0;
+            ViTy temp = vs[read_base + order];
             temp = reflect ? ~temp & ((1U << k) - 1) : temp;
             vs[write_base + j] = temp + offset;
             reflect = gray & (1U << (j + 1));
@@ -131,9 +120,9 @@ class Hilbert {
         }
       }
 
-      for (std::size_t p = 0; p < 1U << N * k; ++p) {
-        Int temp = vs[N * (p + 1) - 1];
-        for (std::size_t i = N - 1; i > 0; --i) {
+      for (STy p = 0; p < 1U << N * k; ++p) {
+        ViTy temp = vs[N * (p + 1) - 1];
+        for (STy i = N - 1; i > 0; --i) {
           vs[N * p + i] = vs[N * p + i - 1];
         }
         vs[N * p] = temp;
@@ -141,56 +130,54 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr void VsToIsImpl(std::size_t N,
-                                                    std::size_t K,
-                                                    UInt is[]) {
+  HB_ALWAYS_INLINE static constexpr void VsToIsImpl(STy N, STy K, ITy is[]) {
     is[0] = 0;
     if (N == 0 || K == 0) {
       return;
     }
-    for (std::size_t k = 0; k < K; ++k) {
-      for (std::size_t j = 0; j < (1U << (N * k)); ++j) {
+    for (STy k = 0; k < K; ++k) {
+      for (STy j = 0; j < (1U << (N * k)); ++j) {
         is[j | (1U << (N * (k + 1) - 1))] = is[j];
       }
-      for (std::size_t j = 0; j < (1U << (N * k)); ++j) {
-        UInt dest = 0;
-        for (std::size_t nvi = 0; nvi < N; ++nvi) {
-          std::size_t dsh = (nvi == 0 ? N - 1 : nvi - 1) * k;
+      for (STy j = 0; j < (1U << (N * k)); ++j) {
+        ITy dest = 0;
+        for (STy nvi = 0; nvi < N; ++nvi) {
+          STy dsh = (nvi == 0 ? N - 1 : nvi - 1) * k;
           dest |= (((((1U << k) - 1) << dsh) & j) >> dsh) << (nvi * (k + 1));
         }
         is[dest] = is[j | (1U << (N * (k + 1) - 1))];
       }
 
-      for (std::size_t i = 1; i < (1U << N); ++i) {
-        UInt orthant = 0;
+      for (STy i = 1; i < (1U << N); ++i) {
+        ITy orthant = 0;
         bool parity = 0;
-        for (std::size_t j = 0; j < N; ++j) {
+        for (STy j = 0; j < N; ++j) {
           parity ^= (i & (1U << j)) >> j;
           orthant |= parity << (N - j - 1);
         }
 
-        std::size_t rotate = N - 1;
+        STy rotate = N - 1;
         if (orthant != 0 && orthant != (1U << N) - 1) {
-          UInt j = (orthant - 1) >> 1;
-          for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+          ITy j = (orthant - 1) >> 1;
+          for (ITy bits = ~j & (j + 1); bits != 0; bits >>= 1) {
             --rotate;
           }
         }
 
-        UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
-        for (std::size_t j = 0; j < (1U << (N * k)); ++j) {
-          UInt src = 0;
-          UInt dest = 0;
+        ITy gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+        for (STy j = 0; j < (1U << (N * k)); ++j) {
+          ITy src = 0;
+          ITy dest = 0;
           bool reflect = !(orthant == 0 || (orthant + 1) & 2);
-          for (std::size_t nvi = 0; nvi < N; ++nvi) {
-            std::size_t dsh = nvi + rotate;
+          for (STy nvi = 0; nvi < N; ++nvi) {
+            STy dsh = nvi + rotate;
             dsh = (dsh >= N ? dsh - N : dsh) * k;
-            std::size_t di = ((((1U << k) - 1) << dsh) & j) >> dsh;
+            STy di = ((((1U << k) - 1) << dsh) & j) >> dsh;
             di = reflect ? ~di & ((1U << k) - 1) : di;
             di |= (i & (1U << (N - nvi - 1))) ? 1U << k : 0;
             dest |= di << (nvi * (k + 1));
 
-            std::size_t ssh = (nvi == 0 ? N - 1 : nvi - 1) * k;
+            STy ssh = (nvi == 0 ? N - 1 : nvi - 1) * k;
             src |= (((((1U << k) - 1) << ssh) & j) >> ssh) << (nvi * (k + 1));
 
             reflect = gray & (1U << (nvi + 1));
@@ -201,40 +188,40 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr void IToVImpl(std::size_t N,
-                                                  std::size_t K,
-                                                  UInt i,
-                                                  Int v[]) {
-    for (std::size_t j = 0; j < N; ++j) {
+  HB_ALWAYS_INLINE static constexpr void IToVImpl(STy N,
+                                                  STy K,
+                                                  ITy i,
+                                                  ViTy v[]) {
+    for (STy j = 0; j < N; ++j) {
       v[j] = 0;
     }
     if (N == 0 || K == 0) {
       return;
     }
-    for (std::size_t k = 0; k < K; ++k) {
-      UInt orthant_i = i & ((1U << N * (k + 1)) - 1);
-      UInt orthant = orthant_i >> (N * k);
+    for (STy k = 0; k < K; ++k) {
+      ITy orthant_i = i & ((1U << N * (k + 1)) - 1);
+      ITy orthant = orthant_i >> (N * k);
 
-      std::size_t rotate = N - 1;
+      STy rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
-        UInt j = (orthant - 1) >> 1;
-        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+        ITy j = (orthant - 1) >> 1;
+        for (ITy bits = ~j & (j + 1); bits != 0; bits >>= 1) {
           --rotate;
         }
       }
 
-      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+      ITy gray = ((orthant - 1) >> 1) ^ (orthant - 1);
       bool reflect = !(orthant == 0 || (orthant + 1) & 2);
-      for (std::size_t write = 0; write < N;) {
-        for (std::size_t read = rotate; read < N; ++read) {
+      for (STy write = 0; write < N;) {
+        for (STy read = rotate; read < N; ++read) {
           if (rotate == write) {
             rotate = read;
           }
 
           bool coord = (orthant + (1U << write)) & (1U << (write + 1));
-          Int offset = coord ? 1U << k : 0;
+          ViTy offset = coord ? 1U << k : 0;
 
-          Int temp = v[read];
+          ViTy temp = v[read];
           temp = reflect ? ~temp & ((1U << k) - 1) : temp;
           v[read] = v[write];
           v[write] = temp + offset;
@@ -246,43 +233,41 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr UInt VToIImpl(std::size_t N,
-                                                  std::size_t K,
-                                                  Int v[]) {
-    UInt i = 0;
+  HB_ALWAYS_INLINE static constexpr ITy VToIImpl(STy N, STy K, ViTy v[]) {
+    ITy i = 0;
     if (N == 0 || K == 0) {
       return i;
     }
-    for (std::size_t k = K; k-- > 0;) {
-      UInt orthant = 0;
+    for (STy k = K; k-- > 0;) {
+      ITy orthant = 0;
       bool parity = 0;
-      for (std::size_t j = N; j-- > 0;) {
+      for (STy j = N; j-- > 0;) {
         parity ^= v[j] >= (1U << k);
         orthant |= parity << j;
       }
 
-      std::size_t rotate = N - 1;
+      STy rotate = N - 1;
       if (orthant != 0 && orthant != (1U << N) - 1) {
-        UInt j = (orthant - 1) >> 1;
-        for (UInt bits = ~j & (j + 1); bits != 0; bits >>= 1) {
+        ITy j = (orthant - 1) >> 1;
+        for (ITy bits = ~j & (j + 1); bits != 0; bits >>= 1) {
           --rotate;
         }
       }
 
-      UInt gray = ((orthant - 1) >> 1) ^ (orthant - 1);
+      ITy gray = ((orthant - 1) >> 1) ^ (orthant - 1);
       bool reflect = !(orthant == 0 || (orthant + 1) & 2);
-      std::size_t write = rotate;
-      std::size_t rotate_outer = rotate;
-      for (std::size_t order = 0; order < N;) {
-        std::size_t count = rotate == 0 ? N : rotate;
-        std::size_t read = rotate_outer - rotate;
-        std::size_t rotate_inner = rotate;
-        for (std::size_t r = 0; r < count; ++r) {
+      STy write = rotate;
+      STy rotate_outer = rotate;
+      for (STy order = 0; order < N;) {
+        STy count = rotate == 0 ? N : rotate;
+        STy read = rotate_outer - rotate;
+        STy rotate_inner = rotate;
+        for (STy r = 0; r < count; ++r) {
           if (rotate == N - order) {
             rotate = rotate_inner - r;
           }
 
-          Int temp = v[read];
+          ViTy temp = v[read];
           temp = temp >= (1U << k) ? temp - (1U << k) : temp;
           v[read] = v[write];
           v[write] = reflect ? ~temp & ((1U << k) - 1) : temp;

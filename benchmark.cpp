@@ -7,13 +7,14 @@
 #include "hilbert.hpp"
 
 int main() {
-  using Int = std::uint16_t;
-  using UInt = std::uint32_t;
+  using ITy = std::uint32_t;
+  using ViTy = std::uint16_t;
+  using STy = unsigned int;
 
-  constexpr std::size_t N = 2;
-  constexpr std::size_t K = 14;
+  constexpr STy N = 2;
+  constexpr STy K = 14;
 
-  auto time_impl = [&](std::size_t bytes, const char* desc, auto&& f) {
+  auto time_impl = [&](STy bytes, const char* desc, auto&& f) {
     auto start = std::chrono::high_resolution_clock::now();
     f();
     auto duration = std::chrono::high_resolution_clock::now() - start;
@@ -23,23 +24,23 @@ int main() {
   };
 
   {
-    constexpr std::size_t bytes = sizeof(Int) * N << N * K;
+    constexpr STy bytes = sizeof(ViTy) * N << N * K;
     auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
-    std::unique_ptr<Int[]> vs;
-    time("new[]", [&]() { vs = std::make_unique<Int[]>(N << N * K); });
+    std::unique_ptr<ViTy[]> vs;
+    time("new[]", [&]() { vs = std::make_unique<ViTy[]>(N << N * K); });
     // memset() is not necessary, but just gives a frame of reference
     // for how fast we can sequentially write to main memory.
     time("memset", [&]() { std::memset(vs.get(), 0, bytes); });
-    time("IsToVs", [&]() { Hilbert<Int, UInt>::IsToVs<N, K>(vs.get()); });
+    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::IsToVs<N, K>(vs.get()); });
   }
 
   {
-    constexpr std::size_t bytes = sizeof(UInt) << N * K;
+    constexpr STy bytes = sizeof(ITy) << N * K;
     auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
-    std::unique_ptr<UInt[]> is;
-    time("new[]", [&]() { is = std::make_unique<UInt[]>(1 << N * K); });
+    std::unique_ptr<ITy[]> is;
+    time("new[]", [&]() { is = std::make_unique<ITy[]>(1U << N * K); });
     time("memset", [&]() { std::memset(is.get(), 0, bytes); });
-    time("IsToVs", [&]() { Hilbert<Int, UInt>::VsToIs<N, K>(is.get()); });
+    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::VsToIs<N, K>(is.get()); });
   }
 
   return 0;
