@@ -87,13 +87,13 @@ template <uint N, uint K> void TestVToI() {
 template <uint N, uint K> void RunTest() {
   TestIToV<N, K>();
   TestVToI<N, K>();
-}
 
-template <uint K> void TestN1() {
-  for (ITy i = 0; i < 1 << K; ++i) {
-    ViTy v;
-    Hilbert<1, K>::IToV(i, &v);
-    CHECK(v == i);
+  if constexpr (N == 1) {
+    for (ITy i = 0; i < 1 << K; ++i) {
+      ViTy v;
+      Hilbert<1, K>::IToV(i, &v);
+      CHECK(v == i);
+    }
   }
 }
 
@@ -133,11 +133,6 @@ int main() {
   RunTest<8, 1>();
   RunTest<9, 1>();
   RunTest<10, 1>();
-  TestN1<1>();
-  TestN1<2>();
-  TestN1<3>();
-  TestN1<4>();
-  TestN1<5>();
 
   return 0;
 }
