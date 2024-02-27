@@ -103,6 +103,13 @@ int main() {
   for (const auto& test : tests) {
     RunTest(test.N, test.K);
   }
+  for (STy K = 1; K < 5; ++K) {
+    for (ITy i = 0; i < 1 << K; ++i) {
+      ViTy v;
+      Hilbert<>::IToV(1, K, i, &v);
+      CHECK(v == i);
+    }
+  }
 
   return 0;
 }

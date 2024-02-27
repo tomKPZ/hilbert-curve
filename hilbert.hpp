@@ -176,11 +176,8 @@ struct Hilbert {
   }
 
   static constexpr ITy VToI(STy N, STy K, ViTy v[]) {
-    if (N == 0 || K == 0) {
-      return 0;
-    }
-    ViTy M = 1 << (K - 1);
-    for (ViTy Q = M; Q > 1; Q >>= 1) {
+    for (int q = K; q-- > 1;) {
+      ViTy Q = 1U << q;
       ViTy P = Q - 1;
       for (STy i = 0; i < N; i++) {
         if (v[i] & Q) {
@@ -200,7 +197,8 @@ struct Hilbert {
       v[i] ^= v[i - 1];
     }
     ViTy t = 0;
-    for (ViTy Q = M; Q > 1; Q >>= 1) {
+    for (int q = K; q-- > 1;) {
+      ViTy Q = 1U << q;
       if (v[N - 1] & Q) {
         t ^= Q - 1;
       }
