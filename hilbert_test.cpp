@@ -25,46 +25,46 @@
 
 using ITy = unsigned int;
 using ViTy = unsigned int;
-using STy = unsigned int;
+using uint = unsigned int;
 
 template <typename T>
 T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
   if (!t) {
-    std::cerr << "CHECK failed: " << file << ':' << line << ": " << message
+    std::cerr << file << ':' << line << ": CHECK failed: " << message
               << std::endl;
     std::abort();
   }
   return t;
 }
 
-std::string VToString(ViTy v[], STy N) {
+std::string VToString(ViTy v[], uint N) {
   std::string s;
-  for (STy i = 0; i < N; ++i) {
+  for (uint i = 0; i < N; ++i) {
     s += std::to_string(v[i]) + ",";
   }
   return s;
 }
 
-void TestIToV(STy N, STy K) {
+template <uint N, uint K> void TestIToV() {
   std::unordered_set<std::string> seen;
   std::vector<ViTy> v0(N), v1(N);
 
   for (ITy i = 0; i < 1U << N * K; ++i) {
-    Hilbert<>::IToV(N, K, i, &v0[0]);
+    Hilbert<N, K>::IToV(i, &v0[0]);
     // Check 1: v[N] should be unique
     auto vStr = VToString(&v0[0], N);
     CHECK(seen.find(vStr) == seen.end());
     seen.insert(vStr);
 
     // Check 2: All v[j] should be in the range [0, K-1]
-    for (STy j = 0; j < N; ++j) {
+    for (uint j = 0; j < N; ++j) {
       CHECK(v0[j] >= 0 && v0[j] < 1 << K);
     }
 
     if (i < (1U << N * K) - 1) {
-      Hilbert<>::IToV(N, K, i + 1, &v1[0]);
+      Hilbert<N, K>::IToV(i + 1, &v1[0]);
       int diffCount = 0;
-      for (STy k = 0; k < N; ++k) {
+      for (uint k = 0; k < N; ++k) {
         if (v0[k] != v1[k]) {
           // Check 3: v1 should be the same as v0 except for exactly one k
           CHECK(v1[k] == v0[k] + 1 || v1[k] == v0[k] - 1);
@@ -76,40 +76,68 @@ void TestIToV(STy N, STy K) {
   }
 }
 
-void TestVToI(STy N, STy K) {
+template <uint N, uint K> void TestVToI() {
   std::vector<ViTy> v(N);
   for (ITy i = 0; i < 1U << N * K; ++i) {
-    Hilbert<>::IToV(N, K, i, &v[0]);
-    CHECK(i == Hilbert<>::VToI(N, K, &v[0]));
+    Hilbert<N, K>::IToV(i, &v[0]);
+    CHECK((i == Hilbert<N, K>::VToI(&v[0])));
   }
 }
 
-void RunTest(STy N, STy K) {
-  TestIToV(N, K);
-  TestVToI(N, K);
+template <uint N, uint K> void RunTest() {
+  TestIToV<N, K>();
+  TestVToI<N, K>();
+}
+
+template <uint K> void TestN1() {
+  for (ITy i = 0; i < 1 << K; ++i) {
+    ViTy v;
+    Hilbert<1, K>::IToV(i, &v);
+    CHECK(v == i);
+  }
 }
 
 int main() {
-  static constexpr struct {
-    STy N;
-    STy K;
-  } tests[] = {
-      {0, 0}, {0, 1}, {1, 0}, {1, 1},  {1, 2}, {1, 3}, {1, 4}, {1, 5},  {1, 6},
-      {1, 7}, {1, 8}, {1, 9}, {1, 10}, {2, 1}, {2, 2}, {2, 3}, {2, 4},  {2, 5},
-      {2, 6}, {2, 7}, {3, 1}, {3, 2},  {3, 3}, {3, 4}, {4, 1}, {4, 2},  {4, 3},
-      {5, 1}, {5, 2}, {6, 1}, {6, 2},  {7, 1}, {8, 1}, {9, 1}, {10, 1},
-  };
-
-  for (const auto& test : tests) {
-    RunTest(test.N, test.K);
-  }
-  for (STy K = 1; K < 5; ++K) {
-    for (ITy i = 0; i < 1 << K; ++i) {
-      ViTy v;
-      Hilbert<>::IToV(1, K, i, &v);
-      CHECK(v == i);
-    }
-  }
+  RunTest<0, 0>();
+  RunTest<0, 1>();
+  RunTest<1, 0>();
+  RunTest<1, 1>();
+  RunTest<1, 2>();
+  RunTest<1, 3>();
+  RunTest<1, 4>();
+  RunTest<1, 5>();
+  RunTest<1, 6>();
+  RunTest<1, 7>();
+  RunTest<1, 8>();
+  RunTest<1, 9>();
+  RunTest<1, 10>();
+  RunTest<2, 1>();
+  RunTest<2, 2>();
+  RunTest<2, 3>();
+  RunTest<2, 4>();
+  RunTest<2, 5>();
+  RunTest<2, 6>();
+  RunTest<2, 7>();
+  RunTest<3, 1>();
+  RunTest<3, 2>();
+  RunTest<3, 3>();
+  RunTest<3, 4>();
+  RunTest<4, 1>();
+  RunTest<4, 2>();
+  RunTest<4, 3>();
+  RunTest<5, 1>();
+  RunTest<5, 2>();
+  RunTest<6, 1>();
+  RunTest<6, 2>();
+  RunTest<7, 1>();
+  RunTest<8, 1>();
+  RunTest<9, 1>();
+  RunTest<10, 1>();
+  TestN1<1>();
+  TestN1<2>();
+  TestN1<3>();
+  TestN1<4>();
+  TestN1<5>();
 
   return 0;
 }

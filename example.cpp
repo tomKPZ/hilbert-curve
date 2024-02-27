@@ -32,8 +32,8 @@ constexpr STy K = 6;
 // Compute and print the points of the curve.
 void BasicIsToVsExample() {
   ViTy vs[1U << N * K][N];
-  Hilbert<>::IsToVs(N, K, vs[0]);
   for (STy i = 0; i < 1U << N * K; ++i) {
+    Hilbert<N, K>::IToV(i, vs[i]);
     std::cout << "[" << vs[i][0] << ',' << vs[i][1] << "]," << std::endl;
   }
 }

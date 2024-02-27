@@ -23,25 +23,23 @@ int main() {
     std::cout << desc << ":\t" << count << " s (" << throughput << " GiB/s)\n";
   };
 
-  {
-    constexpr STy bytes = sizeof(ViTy) * N << N * K;
-    auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
-    std::unique_ptr<ViTy[]> vs;
-    time("new[]", [&]() { vs = std::make_unique<ViTy[]>(N << N * K); });
-    // memset() is not necessary, but just gives a frame of reference
-    // for how fast we can sequentially write to main memory.
-    time("memset", [&]() { std::memset(vs.get(), 0, bytes); });
-    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::IsToVs(N, K, vs.get()); });
-  }
-
-  {
-    constexpr STy bytes = sizeof(ITy) << N * K;
-    auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
-    std::unique_ptr<ITy[]> is;
-    time("new[]", [&]() { is = std::make_unique<ITy[]>(1U << N * K); });
-    time("memset", [&]() { std::memset(is.get(), 0, bytes); });
-    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::VsToIs(N, K, is.get()); });
-  }
+  constexpr STy bytes = sizeof(ViTy) * N << N * K;
+  auto time = [&](const char* desc, auto&& f) { time_impl(bytes, desc, f); };
+  std::unique_ptr<ViTy[]> vs;
+  time("new[]", [&]() { vs = std::make_unique<ViTy[]>(N << N * K); });
+  // memset() is not necessary, but just gives a frame of reference
+  // for how fast we can sequentially write to main memory.
+  time("memset", [&]() { std::memset(vs.get(), 0, bytes); });
+  time("IsToVs", [&]() {
+    for (ITy i = 0; i < 1U << (N * K); i++) {
+      Hilbert<N, K, ViTy, ITy>::IToV(i, &vs[N * i]);
+    }
+  });
+  time("VsToIs", [&]() {
+    for (ITy i = 0; i < 1U << (N * K); i++) {
+      Hilbert<N, K, ViTy, ITy>::VToI(&vs[N * i]);
+    }
+  });
 
   return 0;
 }
