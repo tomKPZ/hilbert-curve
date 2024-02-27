@@ -130,21 +130,31 @@ struct Hilbert {
     for (STy n = 0; n < N; ++n) {
       v[n] = 0;
     }
-    STy t = N * K;
     for (STy k = 0; k < K; ++k) {
       for (STy n = 0; n < N; ++n) {
-        t -= 1;
-        v[n] <<= 1;
-        v[n] |= (i & (1 << t)) >> t;
+        ViTy bit = (i >> (k * N + n)) & 1;
+        // STy vi = n;
+        STy vi = N - 1 - n;
+        STy ki = k;
+        // STy ki = K - 1 - k;
+        v[vi] |= bit << ki;
       }
     }
   }
 
-  static constexpr ITy Gather(STy N, STy K, const ViTy v[]) {
-    (void)N;
-    (void)K;
-    (void)v;
-    // TODO
+  static constexpr ITy Gather(STy N, STy K, ViTy v[]) {
+    ITy i = 0;
+    for (STy k = 0; k < K; ++k) {
+      for (STy n = 0; n < N; ++n) {
+        // STy vi = n;
+        STy vi = N - 1 - n;
+        STy ki = k;
+        // STy ki = K - 1 - k;
+        ViTy bit = (v[vi] >> ki) & 1;
+        i |= bit << (k * N + n);
+      }
+    }
+    return i;
   }
 
   static constexpr void IToV(STy N, STy K, ITy i, ViTy v[]) {
@@ -166,54 +176,40 @@ struct Hilbert {
   }
 
   static constexpr ITy VToI(STy N, STy K, ViTy v[]) {
-    ITy i = 0;
     if (N == 0 || K == 0) {
-      return i;
+      return 0;
     }
-    for (STy k = K; k-- > 0;) {
-      ITy orthant = 0;
-      bool parity = 0;
-      for (STy j = N; j-- > 0;) {
-        parity ^= v[j] >= (1U << k);
-        orthant |= parity << j;
-      }
-
-      STy rotate = N - 1;
-      if (orthant != 0 && orthant != (1U << N) - 1) {
-        ITy j = (orthant - 1) >> 1;
-        for (ITy bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          --rotate;
+    ViTy M = 1 << (K - 1);
+    for (ViTy Q = M; Q > 1; Q >>= 1) {
+      ViTy P = Q - 1;
+      for (STy i = 0; i < N; i++) {
+        if (v[i] & Q) {
+          // invert
+          v[0] ^= P;
+        } else {
+          // exchange
+          ViTy t = (v[0] ^ v[i]) & P;
+          v[0] ^= t;
+          v[i] ^= t;
         }
       }
-
-      ITy gray = ((orthant - 1) >> 1) ^ (orthant - 1);
-      bool reflect = !(orthant == 0 || (orthant + 1) & 2);
-      STy write = rotate;
-      STy rotate_outer = rotate;
-      for (STy order = 0; order < N;) {
-        STy count = rotate == 0 ? N : rotate;
-        STy read = rotate_outer - rotate;
-        STy rotate_inner = rotate;
-        for (STy r = 0; r < count; ++r) {
-          if (rotate == N - order) {
-            rotate = rotate_inner - r;
-          }
-
-          ViTy temp = v[read];
-          temp = temp >= (1U << k) ? temp - (1U << k) : temp;
-          v[read] = v[write];
-          v[write] = reflect ? ~temp & ((1U << k) - 1) : temp;
-
-          ++order;
-          reflect = gray & (1U << order);
-          write = write + 1 == N ? 0 : write + 1;
-          read = read + 1 == N ? 0 : read + 1;
-        }
-      }
-
-      i += orthant << N * k;
     }
-    return i;
+
+    // Gray encode
+    for (STy i = 1; i < N; i++) {
+      v[i] ^= v[i - 1];
+    }
+    ViTy t = 0;
+    for (ViTy Q = M; Q > 1; Q >>= 1) {
+      if (v[N - 1] & Q) {
+        t ^= Q - 1;
+      }
+    }
+    for (STy i = 0; i < N; i++) {
+      v[i] ^= t;
+    }
+
+    return Gather(N, K, v);
   }
 };
 

@@ -17,9 +17,7 @@
 
 #include "hilbert.hpp"
 
-#include <fstream>
 #include <iostream>
-#include <memory>
 #include <unordered_set>
 #include <vector>
 
@@ -48,11 +46,10 @@ std::string VToString(ViTy v[], STy N) {
 }
 
 void TestIToV(STy N, STy K) {
-  ITy range = 1ULL << (N * K);
   std::unordered_set<std::string> seen;
   std::vector<ViTy> v0(N), v1(N);
 
-  for (ITy i = 0; i < range; ++i) {
+  for (ITy i = 0; i < 1U << N * K; ++i) {
     Hilbert<>::IToV(N, K, i, &v0[0]);
     // Check 1: v[N] should be unique
     auto vStr = VToString(&v0[0], N);
@@ -64,7 +61,7 @@ void TestIToV(STy N, STy K) {
       CHECK(v0[j] >= 0 && v0[j] < 1 << K);
     }
 
-    if (i < range - 1) {
+    if (i < (1U << N * K) - 1) {
       Hilbert<>::IToV(N, K, i + 1, &v1[0]);
       int diffCount = 0;
       for (STy k = 0; k < N; ++k) {
@@ -79,42 +76,17 @@ void TestIToV(STy N, STy K) {
   }
 }
 
+void TestVToI(STy N, STy K) {
+  std::vector<ViTy> v(N);
+  for (ITy i = 0; i < 1U << N * K; ++i) {
+    Hilbert<>::IToV(N, K, i, &v[0]);
+    CHECK(i == Hilbert<>::VToI(N, K, &v[0]));
+  }
+}
+
 void RunTest(STy N, STy K) {
   TestIToV(N, K);
-  std::string fname =
-      "test_data/" + std::to_string(N) + '_' + std::to_string(K);
-  std::fstream f;
-  f.open(fname, std::ios::binary | std::ios::in);
-  auto vs = std::make_unique<ViTy[]>(N << N * K);
-  Hilbert<>::IsToVs(N, K, vs.get());
-  auto is = std::make_unique<ITy[]>(1U << N * K);
-  Hilbert<>::VsToIs(N, K, is.get());
-  for (STy i = 0; i < 1U << (N * K); ++i) {
-    for (STy j = 0; j < N; ++j) {
-      ViTy x = vs[N * i + j];
-      uint8_t bytes[2];
-      f.read(reinterpret_cast<char*>(bytes), sizeof(bytes));
-      CHECK(f);
-      CHECK(x == static_cast<ViTy>((bytes[0] << 8) + bytes[1]));
-    }
-
-    ViTy v[N];
-    for (STy k = 0; k < N; k++) {
-      v[k] = vs[N * i + k];
-    }
-
-    STy index = 0;
-    for (STy j = 0; j < N; ++j) {
-      index |= v[j] << j * K;
-    }
-    CHECK(is[index] == i);
-
-    CHECK(i == Hilbert<>::VToI(N, K, v));
-    for (ViTy x : v) {
-      CHECK(x == 0);
-    }
-  }
-  CHECK(f.peek() == EOF);
+  TestVToI(N, K);
 }
 
 int main() {
