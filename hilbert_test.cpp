@@ -17,10 +17,11 @@
 
 #include "hilbert.hpp"
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <unordered_set>
+#include <vector>
 
 #define CHECK(x) check_aux(x, __FILE__, __LINE__, #x)
 
@@ -38,7 +39,48 @@ T& check_aux(T&& t, const char* file, std::size_t line, const char* message) {
   return t;
 }
 
+std::string VToString(ViTy v[], STy N) {
+  std::string s;
+  for (STy i = 0; i < N; ++i) {
+    s += std::to_string(v[i]) + ",";
+  }
+  return s;
+}
+
+void TestIToV(STy N, STy K) {
+  ITy range = 1ULL << (N * K);
+  std::unordered_set<std::string> seen;
+  std::vector<ViTy> v0(N), v1(N);
+
+  for (ITy i = 0; i < range; ++i) {
+    Hilbert<>::IToV(N, K, i, &v0[0]);
+    // Check 1: v[N] should be unique
+    auto vStr = VToString(&v0[0], N);
+    CHECK(seen.find(vStr) == seen.end());
+    seen.insert(vStr);
+
+    // Check 2: All v[j] should be in the range [0, K-1]
+    for (STy j = 0; j < N; ++j) {
+      CHECK(v0[j] >= 0 && v0[j] < 1 << K);
+    }
+
+    if (i < range - 1) {
+      Hilbert<>::IToV(N, K, i + 1, &v1[0]);
+      int diffCount = 0;
+      for (STy k = 0; k < N; ++k) {
+        if (v0[k] != v1[k]) {
+          // Check 3: v1 should be the same as v0 except for exactly one k
+          CHECK(v1[k] == v0[k] + 1 || v1[k] == v0[k] - 1);
+          diffCount++;
+        }
+      }
+      CHECK(diffCount == 1);
+    }
+  }
+}
+
 void RunTest(STy N, STy K) {
+  TestIToV(N, K);
   std::string fname =
       "test_data/" + std::to_string(N) + '_' + std::to_string(K);
   std::fstream f;
@@ -57,8 +99,9 @@ void RunTest(STy N, STy K) {
     }
 
     ViTy v[N];
-    Hilbert<>::IToV(N, K, i, v);
-    CHECK(std::equal(v, v + N, vs.get() + N * i));
+    for (STy k = 0; k < N; k++) {
+      v[k] = vs[N * i + k];
+    }
 
     STy index = 0;
     for (STy j = 0; j < N; ++j) {

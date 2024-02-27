@@ -126,43 +126,40 @@ struct Hilbert {
     }
   }
 
-  static constexpr void IToV(STy N, STy K, ITy i, ViTy v[]) {
-    for (STy j = 0; j < N; ++j) {
-      v[j] = 0;
+  static constexpr void Scatter(STy N, STy K, ITy i, ViTy v[]) {
+    for (STy n = 0; n < N; ++n) {
+      v[n] = 0;
     }
-    if (N == 0 || K == 0) {
-      return;
-    }
+    STy t = N * K;
     for (STy k = 0; k < K; ++k) {
-      ITy orthant_i = i & ((1U << N * (k + 1)) - 1);
-      ITy orthant = orthant_i >> (N * k);
-
-      STy rotate = N - 1;
-      if (orthant != 0 && orthant != (1U << N) - 1) {
-        ITy j = (orthant - 1) >> 1;
-        for (ITy bits = ~j & (j + 1); bits != 0; bits >>= 1) {
-          --rotate;
-        }
+      for (STy n = 0; n < N; ++n) {
+        t -= 1;
+        v[n] <<= 1;
+        v[n] |= (i & (1 << t)) >> t;
       }
+    }
+  }
 
-      ITy gray = ((orthant - 1) >> 1) ^ (orthant - 1);
-      bool reflect = !(orthant == 0 || (orthant + 1) & 2);
-      for (STy write = 0; write < N;) {
-        for (STy read = rotate; read < N; ++read) {
-          if (rotate == write) {
-            rotate = read;
-          }
+  static constexpr ITy Gather(STy N, STy K, const ViTy v[]) {
+    (void)N;
+    (void)K;
+    (void)v;
+    // TODO
+  }
 
-          bool coord = (orthant + (1U << write)) & (1U << (write + 1));
-          ViTy offset = coord ? 1U << k : 0;
-
-          ViTy temp = v[read];
-          temp = reflect ? ~temp & ((1U << k) - 1) : temp;
-          v[read] = v[write];
-          v[write] = temp + offset;
-
-          ++write;
-          reflect = gray & (1U << write);
+  static constexpr void IToV(STy N, STy K, ITy i, ViTy v[]) {
+    Scatter(N, K, i ^ (i >> 1), v);
+    for (ViTy Q = 2; Q < 1U << K; Q <<= 1) {
+      ViTy P = Q - 1;
+      for (int i = N - 1; i >= 0; i--) {
+        if (v[i] & Q) {
+          // invert
+          v[0] ^= P;
+        } else {
+          // exchange
+          ViTy t = (v[0] ^ v[i]) & P;
+          v[0] ^= t;
+          v[i] ^= t;
         }
       }
     }
