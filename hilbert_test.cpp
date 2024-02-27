@@ -20,9 +20,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <iterator>
 #include <memory>
-#include <vector>
 
 #define CHECK(x) check_aux(x, __FILE__, __LINE__, #x)
 

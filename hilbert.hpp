@@ -18,75 +18,13 @@
 #ifndef HILBERT_HPP
 #define HILBERT_HPP
 
-#if defined(__GNUC__)
-#define HB_ALWAYS_INLINE inline __attribute__((__always_inline__))
-#elif defined(_MSC_VER)
-#define HB_ALWAYS_INLINE __forceinline
-#else
-#define HB_ALWAYS_INLINE inline
-#endif
-
 template <typename ViTy = unsigned int,
           typename ITy = unsigned int,
           typename STy = unsigned int>
-class Hilbert {
- public:
-  static constexpr void IsToVs(STy N, STy K, ViTy vs[]) {
-    IsToVsImpl(N, K, vs);
-  }
-  template <STy N> static constexpr void IsToVsN(STy K, ViTy vs[]) {
-    IsToVsImpl(N, K, vs);
-  }
-  template <STy K> static constexpr void IsToVsK(STy N, ViTy vs[]) {
-    IsToVsImpl(N, K, vs);
-  }
-  template <STy N, STy K> static constexpr void IsToVs(ViTy vs[]) {
-    IsToVsImpl(N, K, vs);
-  }
-
-  static constexpr void VsToIs(STy N, STy K, ITy is[]) {
-    VsToIsImpl(N, K, is);
-  }
-  template <STy N> static constexpr void VsToIsN(STy K, ITy is[]) {
-    VsToIsImpl(N, K, is);
-  }
-  template <STy K> static constexpr void VsToIsK(STy N, ITy is[]) {
-    VsToIsImpl(N, K, is);
-  }
-  template <STy N, STy K> static constexpr void VsToIs(ITy is[]) {
-    VsToIsImpl(N, K, is);
-  }
-
-  static constexpr void IToV(STy N, STy K, ITy i, ViTy v[]) {
-    IToVImpl(N, K, i, v);
-  }
-  template <STy N> static constexpr void IToVN(STy K, ITy i, ViTy v[]) {
-    IToVImpl(N, K, i, v);
-  }
-  template <STy K> static constexpr void IToVK(STy N, ITy i, ViTy v[]) {
-    IToVImpl(N, K, i, v);
-  }
-  template <STy N, STy K> static constexpr void IToV(ITy i, ViTy v[]) {
-    IToVImpl(N, K, i, v);
-  }
-
-  static constexpr ITy VToI(STy N, STy K, ViTy v[]) {
-    return VToIImpl(N, K, v);
-  }
-  template <STy N> static constexpr ITy VToIN(STy K, ViTy v[]) {
-    return VToIImpl(N, K, v);
-  }
-  template <STy K> static constexpr ITy VToIK(STy N, ViTy v[]) {
-    return VToIImpl(N, K, v);
-  }
-  template <STy N, STy K> static constexpr ITy VToI(ViTy v[]) {
-    return VToIImpl(N, K, v);
-  }
-
- private:
+struct Hilbert {
   Hilbert() = delete;
 
-  HB_ALWAYS_INLINE static constexpr void IsToVsImpl(STy N, STy K, ViTy vs[]) {
+  static constexpr void IsToVs(STy N, STy K, ViTy vs[]) {
     for (STy i = 0; i < N; ++i) {
       vs[i] = 0;
     }
@@ -130,7 +68,7 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr void VsToIsImpl(STy N, STy K, ITy is[]) {
+  static constexpr void VsToIs(STy N, STy K, ITy is[]) {
     is[0] = 0;
     if (N == 0 || K == 0) {
       return;
@@ -188,10 +126,7 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr void IToVImpl(STy N,
-                                                  STy K,
-                                                  ITy i,
-                                                  ViTy v[]) {
+  static constexpr void IToV(STy N, STy K, ITy i, ViTy v[]) {
     for (STy j = 0; j < N; ++j) {
       v[j] = 0;
     }
@@ -233,7 +168,7 @@ class Hilbert {
     }
   }
 
-  HB_ALWAYS_INLINE static constexpr ITy VToIImpl(STy N, STy K, ViTy v[]) {
+  static constexpr ITy VToI(STy N, STy K, ViTy v[]) {
     ITy i = 0;
     if (N == 0 || K == 0) {
       return i;

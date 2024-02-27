@@ -31,7 +31,7 @@ int main() {
     // memset() is not necessary, but just gives a frame of reference
     // for how fast we can sequentially write to main memory.
     time("memset", [&]() { std::memset(vs.get(), 0, bytes); });
-    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::IsToVs<N, K>(vs.get()); });
+    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::IsToVs(N, K, vs.get()); });
   }
 
   {
@@ -40,7 +40,7 @@ int main() {
     std::unique_ptr<ITy[]> is;
     time("new[]", [&]() { is = std::make_unique<ITy[]>(1U << N * K); });
     time("memset", [&]() { std::memset(is.get(), 0, bytes); });
-    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::VsToIs<N, K>(is.get()); });
+    time("IsToVs", [&]() { Hilbert<ViTy, ITy>::VsToIs(N, K, is.get()); });
   }
 
   return 0;
